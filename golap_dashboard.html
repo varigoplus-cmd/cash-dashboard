@@ -1,0 +1,6342 @@
+<meta charset="utf-8">
+<title>ຍອດເງິນສົດ Go+Lab</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f3ef;
+    --surface: #ffffff;
+    --surface-2: #ebe9e3;
+    --ink: #14171a;
+    --ink-2: #565b57;
+    --ink-muted: #8b8f86;
+    --border: rgba(20,23,26,0.10);
+    --border-strong: rgba(20,23,26,0.16);
+    --accent: #0e7a63;
+    --accent-ink: #ffffff;
+    --accent-soft: #e1f1eb;
+    --gold: #a86a00;
+    --gold-soft: #f6ecd9;
+    --good: #0ca30c;
+    --critical: #d03b3b;
+    --warning: #b3760f;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+    --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    --shadow: 0 1px 2px rgba(20,23,26,0.06), 0 8px 24px -12px rgba(20,23,26,0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #0e1110;
+      --surface: #171a18;
+      --surface-2: #1f2321;
+      --ink: #f4f4f2;
+      --ink-2: #c2c5bf;
+      --ink-muted: #85897f;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.16);
+      --accent: #1f9e82;
+      --accent-ink: #05130f;
+      --accent-soft: rgba(31,158,130,0.16);
+      --gold: #d69f2b;
+      --gold-soft: rgba(214,159,43,0.14);
+      --good: #21b321;
+      --critical: #e66767;
+      --warning: #d69f2b;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --s5: #d55181; --s6: #21b321; --s7: #9085e9; --s8: #e66767;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1110;
+    --surface: #171a18;
+    --surface-2: #1f2321;
+    --ink: #f4f4f2;
+    --ink-2: #c2c5bf;
+    --ink-muted: #85897f;
+    --border: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.16);
+    --accent: #1f9e82;
+    --accent-ink: #05130f;
+    --accent-soft: rgba(31,158,130,0.16);
+    --gold: #d69f2b;
+    --gold-soft: rgba(214,159,43,0.14);
+    --good: #21b321;
+    --critical: #e66767;
+    --warning: #d69f2b;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #21b321; --s7: #9085e9; --s8: #e66767;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans Lao Looped", "Noto Sans Lao", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 20px 80px; }
+  a { color: inherit; }
+
+  /* ---- header ---- */
+  .page-head {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: flex-end; justify-content: space-between;
+    margin-bottom: 24px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: linear-gradient(155deg, var(--accent), #0a5545);
+    color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; letter-spacing: -0.02em;
+    flex: none;
+  }
+  h1 { font-size: 22px; font-weight: 800; margin: 0 0 2px; letter-spacing: -0.01em; }
+  .page-head .meta { color: var(--ink-2); font-size: 13px; }
+  .head-right { text-align: right; color: var(--ink-muted); font-size: 12px; }
+  .head-right .updated-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .updated-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .refresh-btn {
+    font-family: inherit; font-size: 13px; line-height: 1; color: inherit;
+    background: transparent; border: none; cursor: pointer; padding: 0 0 0 4px;
+    opacity: 0.75;
+  }
+  .refresh-btn:hover:not(:disabled) { opacity: 1; }
+  .refresh-btn:disabled { opacity: 0.35; cursor: default; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- kpi grid ---- */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px; margin-bottom: 28px;
+  }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi.lead { background: linear-gradient(155deg, var(--accent), #0a5545); color: var(--accent-ink); border: none; }
+  .kpi.lead .kpi-label, .kpi.lead .kpi-sub { color: rgba(255,255,255,0.78); }
+  :root[data-theme="light"] .kpi.lead, :root:not([data-theme="dark"]) .kpi.lead { color: #ffffff; }
+  .kpi-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); }
+  .kpi-value { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .kpi-sub { font-size: 12px; color: var(--ink-2); }
+  .kpi-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; width: fit-content; }
+  .kpi-delta.up { color: var(--good); }
+  .kpi-delta.down { color: var(--critical); }
+
+  /* ---- section ---- */
+  .section { margin-bottom: 28px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .section-title { font-size: 15px; font-weight: 800; letter-spacing: -0.005em; }
+  .section-note { font-size: 12px; color: var(--ink-muted); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ---- legend ---- */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin-top: 10px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+  /* ---- chart chrome ---- */
+  svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .grid-line { stroke: var(--border); stroke-width: 1; }
+  .axis-label { fill: var(--ink-muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+  .month-label { fill: var(--ink-2); font-size: 11px; font-weight: 600; }
+  .bar-value { fill: var(--ink); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .net-good { fill: var(--good); }
+  .net-bad { fill: var(--critical); }
+  .hover-guide { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; pointer-events: none; }
+  .hover-dot { opacity: 0; pointer-events: none; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 30;
+    background: var(--ink); color: var(--bg);
+    border-radius: 8px; padding: 8px 10px; font-size: 11.5px; line-height: 1.45;
+    box-shadow: var(--shadow); opacity: 0; transform: translate(-50%, -100%);
+    transition: opacity .08s ease; white-space: nowrap;
+  }
+  .tt-title { font-weight: 800; margin-bottom: 2px; }
+  .tt-row { display: flex; gap: 10px; justify-content: space-between; }
+  .tt-row .k { color: var(--ink-muted); }
+
+  .chart-wrap { position: relative; }
+
+  /* ---- hbar rows ---- */
+  .hbar-row { display: grid; grid-template-columns: 168px 1fr 96px; align-items: center; gap: 10px; padding: 7px 0; }
+  .hbar-row + .hbar-row { border-top: 1px solid var(--border); }
+  .hbar-label { font-size: 12.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hbar-track { position: relative; height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .hbar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; }
+  .hbar-value { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .hbar-count { font-size: 11px; color: var(--ink-muted); }
+
+  /* ---- accounts table ---- */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--ink-muted); font-weight: 700; padding: 0 10px 8px; border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  tbody td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: top; font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x: auto; }
+  .cur-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px;
+    background: var(--surface-2); color: var(--ink-2);
+  }
+  .cur-badge.LAK { background: var(--accent-soft); color: var(--accent); }
+  .cur-badge.USD { background: var(--gold-soft); color: var(--gold); }
+  .cur-badge.THB { background: rgba(74,58,167,0.12); color: var(--s7); }
+
+  /* ---- filters ---- */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .filters input[type="search"], .filters select {
+    font-family: inherit; font-size: 12.5px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: 9px;
+    padding: 8px 10px; outline: none;
+  }
+  .filters input[type="search"] { flex: 1 1 220px; min-width: 160px; }
+  .filters input[type="search"]:focus, .filters select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .pill-group { display: inline-flex; gap: 4px; background: var(--surface-2); padding: 3px; border-radius: 9px; }
+  .pill {
+    font-family: inherit; font-size: 12px; font-weight: 700; color: var(--ink-2);
+    background: transparent; border: none; border-radius: 7px; padding: 6px 11px; cursor: pointer;
+  }
+  .pill:hover { color: var(--ink); }
+  .pill[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+  .pill:focus-visible, .page-btn:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .result-count { font-size: 12px; color: var(--ink-muted); margin-inline-start: auto; }
+
+  .desc-cell { max-width: 360px; }
+  .desc-main { color: var(--ink); }
+  .desc-sub { color: var(--ink-muted); font-size: 11px; margin-top: 2px; }
+  .cat-tag { font-size: 10.5px; color: var(--ink-2); background: var(--surface-2); padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+
+  .pager { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; }
+  .page-btn {
+    font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 13px; cursor: pointer;
+  }
+  .page-btn:disabled { opacity: 0.4; cursor: default; }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .page-status { font-size: 12px; color: var(--ink-muted); }
+
+  footer { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--ink-muted); font-size: 11.5px; line-height: 1.7; }
+  footer b { color: var(--ink-2); }
+
+  .empty-state { text-align: center; padding: 30px 10px; color: var(--ink-muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+
+  <div class="page-head">
+    <div class="brand">
+      <div class="brand-mark">GL</div>
+      <div>
+        <h1>ຍອດເງິນສົດ Go+Lab</h1>
+        <div class="meta">VARIGO PLUS CO., LTD · ບັນຊີທະນາຄານ BCEL · ເມສາ – ສິງຫາ 2026</div>
+      </div>
+    </div>
+    <div class="head-right">
+      <div class="updated-pill"><span class="dot"></span><span id="lastUpdatedPill">ອັບເດດຫຼ້າສຸດ</span><button id="refreshBtn" class="refresh-btn" title="ອັບເດດຂໍ້ມູນເທື່ອນີ້" type="button">⟳</button></div>
+      <div>ອີງຕາມ Google Sheet: Cash Balance Go+Lab</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">ກະແສເງິນສົດ LAK ຮັບ‑ຈ່າຍ ຕໍ່ເດືອນ</div>
+      <div class="section-note">ໂຕເລກເທິງແທ່ງ = ຍອດສຸດທິຂອງເດືອນນັ້ນ (ຮັບ − ຈ່າຍ)</div>
+    </div>
+    <div class="card">
+      <div class="chart-wrap" id="flowChart"></div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--s1)"></span>ຮັບເຂົ້າ</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--s8)"></span>ຈ່າຍອອກ</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">ຍອດເງິນຄົງເຫຼືອທ້າຍເດືອນ</div>
+      <div class="section-note">ແຍກຕາມສະກຸນເງິນ (ຄົນລະຂະໜາດ ຈຶ່ງແຍກກຣາຟ)</div>
+    </div>
+    <div class="grid-2" id="balanceCharts"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">ໜີ້ຕ້ອງຮັບ - ໜີ້ຕ້ອງສົ່ງ (AR/AP)</div>
+      <div class="section-note">ຍອດຄົງເຫຼືອໜີ້ທ້າຍເດືອນ ແຍກຕາມສະກຸນເງິນ</div>
+    </div>
+    <div class="kpi-grid" id="debtKpiGrid"></div>
+    <div class="grid-2" id="debtCharts"></div>
+  </div>
+
+  <div class="section">
+    <div class="grid-2">
+      <div>
+        <div class="section-head"><div class="section-title">ຄ່າໃຊ້ຈ່າຍຕາມໝວດໝູ່ (LAK)</div></div>
+        <div class="card" id="categoryChart"></div>
+      </div>
+      <div>
+        <div class="section-head"><div class="section-title">ລາຍການຈ່າຍສູງສຸດ 10 ອັນດັບ</div></div>
+        <div class="card" id="itemChart"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">ບັນຊີທະນາຄານ</div></div>
+    <div class="card table-scroll">
+      <table id="accountsTable"></table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">ລາຍການທຸລະກຳທັງໝົດ</div>
+      <div class="section-note" id="txSectionNote"></div>
+    </div>
+    <div class="card">
+      <div class="filters">
+        <input type="search" id="txSearch" placeholder="ຄົ້ນຫາ: ລາຍລະອຽດ, ເລກ PV..." />
+        <select id="txMonth"><option value="">ທຸກເດືອນ</option></select>
+        <select id="txCategory"><option value="">ທຸກໝວດ</option></select>
+        <div class="pill-group" id="txCurrencyPills">
+          <button class="pill" data-cur="" aria-pressed="true">ທັງໝົດ</button>
+          <button class="pill" data-cur="LAK" aria-pressed="false">LAK</button>
+          <button class="pill" data-cur="THB" aria-pressed="false">THB</button>
+        </div>
+        <span class="result-count" id="txResultCount"></span>
+      </div>
+      <div class="table-scroll">
+        <table id="txTable">
+          <thead>
+            <tr>
+              <th>ວັນທີ</th><th>ລາຍລະອຽດ</th><th>ເລກ PV</th>
+              <th class="num">ຮັບເຂົ້າ</th><th class="num">ຈ່າຍອອກ</th><th>ສະກຸນ</th>
+            </tr>
+          </thead>
+          <tbody id="txBody"></tbody>
+        </table>
+      </div>
+      <div id="txEmpty" class="empty-state" style="display:none;">ບໍ່ພົບລາຍການທີ່ຄົ້ນຫາ</div>
+      <div class="pager">
+        <button class="page-btn" id="txPrev">← ກ່ອນໜ້າ</button>
+        <span class="page-status" id="txPageStatus"></span>
+        <button class="page-btn" id="txNext">ຖັດໄປ →</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div><b>ແຫຼ່ງຂໍ້ມູນ:</b> Google Sheet "Cash Balance Go+Lab" (ຊີດ ເມ.ສ–ສ.ຫ 2026 ແລະ Summary), ດຶງອອກ ແລະ ຄິດໄລ່ຄືນໃໝ່ 100% ໂດຍກົງຈາກຊີດຕົ້ນສະບັບ, ລວມທັງ "ໜີ້ຕ້ອງຮັບ/ຕ້ອງສົ່ງ" (AR/AP).</div>
+    <div><b>ໝາຍເຫດ:</b> ໝວດ "ອື່ນໆ" ແມ່ນລາຍການທີ່ຈັດປະເພດອັດຕະໂນມັດຈາກຄຳອະທິບາຍລາຍການ ອາດຄາດເຄື່ອນໄດ້ໜ້ອຍໜຶ່ງ.</div>
+    <div>Dashboard ນີ້ດຶງຂໍ້ມູນສົດຈາກ Google Sheet ທຸກຄັ້ງທີ່ເປີດ (ຕ້ອງມີອິນເຕີເນັດ) — ອັບເດດ Sheet ແລ້ວເປີດໄຟລ໌ນີ້ຄືນ ຈະເຫັນຂໍ້ມູນໃໝ່ທັນທີ ບໍ່ຕ້ອງຮັບໄຟລ໌ໃໝ່. ຖ້າບໍ່ມີອິນເຕີເນັດ ຈະສະແດງຂໍ້ມູນຊຸດຫຼ້າສຸດທີ່ບັນທຶກໄວ້ໃນໄຟລ໌ແທນ.</div>
+  </footer>
+
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script id="dashboard-data" type="application/json">{
+  "months": [
+    {
+      "month": "Apr 2026",
+      "opening": {
+        "LAK": 600000.0
+      },
+      "closing": {
+        "LAK": 40592806.24
+      },
+      "totals": {
+        "LAK": {
+          "in": 86737906.24000001,
+          "out": 46745100.0
+        }
+      },
+      "tx_count": 70
+    },
+    {
+      "month": "May 2026",
+      "opening": {
+        "LAK": 40592806.24,
+        "THB": 2000.0
+      },
+      "closing": {
+        "LAK": 12602511.57,
+        "THB": 8678.02
+      },
+      "totals": {
+        "LAK": {
+          "in": 45788636.0,
+          "out": 73778930.67
+        },
+        "THB": {
+          "in": 20000.0,
+          "out": 13321.98
+        }
+      },
+      "tx_count": 125
+    },
+    {
+      "month": "Jun 2026",
+      "opening": {
+        "LAK": 12602511.57,
+        "THB": 8678.02
+      },
+      "closing": {
+        "LAK": 6139054.57,
+        "THB": 25052.11
+      },
+      "totals": {
+        "LAK": {
+          "in": 66920000.0,
+          "out": 73383457.0
+        },
+        "THB": {
+          "in": 70000.0,
+          "out": 53625.909999999996
+        }
+      },
+      "tx_count": 129
+    },
+    {
+      "month": "Jul 2026",
+      "opening": {
+        "LAK": 6139054.57,
+        "THB": 25052.11
+      },
+      "closing": {
+        "LAK": 16012173.22,
+        "THB": 10614.17
+      },
+      "totals": {
+        "LAK": {
+          "in": 50362334.89,
+          "out": 40489216.24
+        },
+        "THB": {
+          "in": 22000.0,
+          "out": 36437.94
+        }
+      },
+      "tx_count": 151
+    },
+    {
+      "month": "Aug 2026",
+      "opening": {
+        "LAK": 16012173.22,
+        "THB": 10614.17
+      },
+      "closing": {
+        "LAK": 16642173.22,
+        "THB": 10614.17
+      },
+      "totals": {
+        "LAK": {
+          "in": 630000.0,
+          "out": 0.0
+        },
+        "THB": {
+          "in": 0.0,
+          "out": 0.0
+        }
+      },
+      "tx_count": 5
+    }
+  ],
+  "summary_accounts": [
+    {
+      "bank_code": "BCEL",
+      "company": "Go+Lap",
+      "account_type": "Current",
+      "gl_account": 1120.0,
+      "bank_account_number": 1021100559491.0,
+      "currency": "LAK",
+      "transaction_currency_balance": 16642173.22,
+      "reserve_amount": 500000.0,
+      "available_balance": 16142173.22,
+      "rate": 1.0,
+      "total_lak_equivalent": 16142173.22
+    },
+    {
+      "bank_code": "BCEL",
+      "company": "Go+Lap",
+      "account_type": "Current",
+      "gl_account": 1120.0,
+      "bank_account_number": 2241100635994.0,
+      "currency": "THB",
+      "transaction_currency_balance": 10614.17,
+      "reserve_amount": 2000.0,
+      "available_balance": 8614.17,
+      "rate": 674.44,
+      "total_lak_equivalent": 5809740.815
+    }
+  ],
+  "top_items": [
+    {
+      "desc": "LAK ແລກ THB",
+      "total_paid": 77239000.0,
+      "tx_count": 7
+    },
+    {
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 06/2026",
+      "total_paid": 20389150.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 045/2026",
+      "total_paid": 19797940.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 07/2026",
+      "total_paid": 19716484.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 04/2026",
+      "total_paid": 19288000.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າອຸປະກອບປິ້ນຕິ້ງ ຍອດ 25864 ບາດ",
+      "total_paid": 18104800.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າຄອມພິມເຕີ່ ໃຫ້ພະນັກງານ ກາຟຟິກ (ສ່ວນທີ່ເຫຼືອ 70%)",
+      "total_paid": 16735600.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າອຸປະກອບປິ້ນຕິ້ງ ຍອດວັນທີ 29/10/2025, 12/11/2025",
+      "total_paid": 10289300.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າຄອມພິມເຕີ່ ໃຫ້ພະນັກງານ ກາຟຟິກ (ມັດຈຳກ່ອນ 30%)",
+      "total_paid": 6900000.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 19/05/2026",
+      "total_paid": 3595200.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າຍິງໂຄສະນາເພີ່ມຍອດຂາຍ ແລະ ຜູ້ຕິດຕາມເຟສ Go+lab 06/2026",
+      "total_paid": 3226500.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າຍິງໂຄສະນາເພີ່ມຍອດຂາຍ ແລະ ຜູ້ຕິດຕາມເຟສ Go+lab 07/2026",
+      "total_paid": 2858536.24,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່່າຕິດຕັ້ງວາຍຟາຍ ລາຍປີ ແຖມຟຣີ 04ເດືອນ",
+      "total_paid": 2400000.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ຈ່າຍຄ່າຍິງແອັດໂຄສະນາ ແລະ ເຕີມໂປຣແອັບຕ່າໆ ປະຈຳເດືອນ 4/2026",
+      "total_paid": 2203800.0,
+      "tx_count": 1
+    },
+    {
+      "desc": "ເບີກເງິນ ຈ່າຍຄ່າຍິງແອັດໂຄສະນາເພຈ",
+      "total_paid": 2177800.0,
+      "tx_count": 1
+    }
+  ],
+  "categories": [
+    {
+      "category": "ອື່ນໆ",
+      "total": 82641872.67
+    },
+    {
+      "category": "ເງິນເດືອນ",
+      "total": 79191574.0
+    },
+    {
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ",
+      "total": 72528257.24
+    },
+    {
+      "category": "ຄ່າທຳນຽມທະນາຄານ",
+      "total": 35000.0
+    }
+  ],
+  "overall": {
+    "total_tx": 490
+  },
+  "transactions": [
+    {
+      "month": "Apr 2026",
+      "date": "2026-03-25",
+      "pv": "001-Mar-26",
+      "desc": "ຈ່າຍຄ່າຊື້ປື້ມແຊັກ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 100000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": "002-Mar-26",
+      "desc": "ລາຍຮັບຈາກການໂອນຍ້າຍເງິນຈາກບັນຊີເກົ່າເຂົ້າບັນຊີໃໝ່",
+      "currency": "LAK",
+      "in": 64087906.24,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 340000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 3990000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": "001-Apr-26",
+      "desc": "ຈ່າຍເງິນຄືນໃຫ້ພະນັກງານ ຄ່າ Adapter 1ອັນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 200000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": "002-Apr-26",
+      "desc": "ຈ່າຍຄ່າຄອມພິມເຕີ່ ໃຫ້ພະນັກງານ ກາຟຟິກ (ມັດຈຳກ່ອນ 30%)",
+      "currency": "LAK",
+      "in": 0,
+      "out": 6900000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-01",
+      "pv": "003-Apr-26",
+      "desc": "ຈ່າຍຄ່າຍິງແອັດໂຄສະນາ ແລະ ເຕີມໂປຣແອັບຕ່າໆ ປະຈຳເດືອນ 4/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2203800.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-02",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-02",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 340000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-04",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-09",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-09",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-09",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-09",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-10",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1120000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-11",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 2800000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 150000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-22",
+      "pv": "004-Apr-26",
+      "desc": "ຈ່າຍຄ່າລະບົບ POS ຂອງ GO+LAB ໄລຍະ1ປ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 1102200.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-22",
+      "pv": "005-Apr-26",
+      "desc": "ຈ່າຍຄ່າຄອມພິມເຕີ່ ໃຫ້ພະນັກງານ ກາຟຟິກ (ສ່ວນທີ່ເຫຼືອ 70%)",
+      "currency": "LAK",
+      "in": 0,
+      "out": 16735600.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-22",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 4000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 840000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 150000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-25",
+      "pv": null,
+      "desc": "CHARGE FEE",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3500.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-28",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-28",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 310000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 80000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-29",
+      "pv": "006-Apr-26",
+      "desc": "ຈ່າຍຄ່າ Wireiess USB Adapter",
+      "currency": "LAK",
+      "in": 0,
+      "out": 200000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-29",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-30",
+      "pv": "007-Apr-26",
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 04/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 19288000.0,
+      "category": "ເງິນເດືອນ"
+    },
+    {
+      "month": "Apr 2026",
+      "date": "2026-04-30",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 6000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-02",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-04",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 200000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-05",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 200000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-05",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-05",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-05",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 510000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-05",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 500000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": "001-May-26",
+      "desc": "ຈ່າຍຄ່າອຸປະກອບປິ້ນຕິ້ງ ຍອດວັນທີ 29/10/2025, 12/11/2025",
+      "currency": "LAK",
+      "in": 0,
+      "out": 10289300.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": "002-May-26",
+      "desc": "ເຄມເງິນໃຫ້ພະນັກງານຄ່າປ້າຍຕັ້ງ A4",
+      "currency": "LAK",
+      "in": 0,
+      "out": 160000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": "003-May-26",
+      "desc": "ເບີກເງິນ ຈ່າຍຄ່າຍິງແອັດໂຄສະນາເພຈ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2177800.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": null,
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ",
+      "currency": "LAK",
+      "in": 450000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": "004-May-26",
+      "desc": "ເຄຍເງິນແຮຄ່າຍິງແອັດໂຄສະນາ ແລະ ເຕີມໂປຣແອັບຕ່າໆ ປະຈຳເດືອນ 4/2026",
+      "currency": "LAK",
+      "in": 375636.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 790000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 602000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-08",
+      "pv": null,
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-11",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-11",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-11",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 240000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-11",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-12",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 250000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 170000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ",
+      "currency": "LAK",
+      "in": 840000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 150000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": "004-May-26",
+      "desc": "ຈ່າຍຄ່າອຸປະກອບປິ້ນຕິ້ງ ຍອດ 25864 ບາດ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 18104800.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-13",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 750000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 560000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້ ( ເງິນມັດຈຳ ຈາກລູກຄ້າ ຕຽງ )",
+      "currency": "LAK",
+      "in": 200000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 100000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້ ຫລຸດ ( 50,000 ກີບ )",
+      "currency": "LAK",
+      "in": 900000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1300000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": "005-May-26",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 19/05/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3595200.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": "005-May-26",
+      "desc": "ຄ່າທຳຳນຽມໂອນເງິນຍອດ 1,971,872.67 Kip",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": "006-May-26",
+      "desc": "ຍິງແອ້ດໂຄສະນາເພີ່ມຍອດຂາຍ ແລະ ຜູ້ຕິດຕາມເພສ Go+lab",
+      "currency": "LAK",
+      "in": 0,
+      "out": 1971872.67,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-19",
+      "pv": "006-May-26",
+      "desc": "ຄ່າທຳຳນຽມໂອນເງິນຍອດ 3,595,200 Kip",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-21",
+      "pv": null,
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ",
+      "currency": "LAK",
+      "in": 490000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 8400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 4000000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 250000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 200000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 530000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-25",
+      "pv": null,
+      "desc": "CHARGE FEE  04/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3500.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 270000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 500000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": "007-May-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "LAK",
+      "in": 0,
+      "out": 13760000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": "007-May-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "THB",
+      "in": 20000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-26",
+      "pv": "008-May-2026",
+      "desc": "BANK-FEE_ຄ່າສິນຄ້າ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": "009-May-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 06/02/2026 ແລະ 25/05/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 13319.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": "010-May-2026",
+      "desc": "ຈ່າຍຄ່່າຕິດຕັ້ງວາຍຟາຍ ລາຍປີ ແຖມຟຣີ 04ເດືອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2400000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": "011-May-2026",
+      "desc": "ສົ່ງເງີນຄືນຄ່າເປີດບັນຊີສະກຸນເງີນບາດ 2,220 ບາດ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 1490518.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": "012-May-2026",
+      "desc": "BANK-FEE_ຄ່າສິນຄ້າ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": "012-May-2026",
+      "desc": "BANK-FEE_ຄ່າສິນຄ້າ",
+      "currency": "THB",
+      "in": 0,
+      "out": 2.98,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-28",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-28",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-28",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 221000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-28",
+      "pv": "013-May-2026",
+      "desc": "CHARGE FEE",
+      "currency": "LAK",
+      "in": 0,
+      "out": 15000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-29",
+      "pv": "014-May-2026",
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 045/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 19797940.0,
+      "category": "ເງິນເດືອນ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-29",
+      "pv": "015-May-2026",
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 4200000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "May 2026",
+      "date": "2026-05-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-01",
+      "pv": "CR-001-Jun-2026",
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ ວັນທີ່ 28/05/2026 ຫາ ວັນທີ່ 29/05/2026",
+      "currency": "LAK",
+      "in": 1260000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-01",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-01",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-01",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 50000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 670000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 90000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-02",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 340000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-03",
+      "pv": "PV-001-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "LAK",
+      "in": 0,
+      "out": 11696000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-03",
+      "pv": "PV-001-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "THB",
+      "in": 17000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-03",
+      "pv": "PV-002-Jun-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 01/06/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 10273.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-04",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 840000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-04",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-05",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-05",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-05",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-05",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-06",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-06",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 840000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-06",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-08",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-08",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-08",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-08",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-09",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-09",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-09",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-09",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-10",
+      "pv": "PV-003-JUN-2026",
+      "desc": "ຄ່າໄຟຟ້າເດືອນ 05/06 ຄ່າ cLAUDE AI ເມວ ເດືອນ 04/2026 , 06/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 1484307.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-10",
+      "pv": "PV-004-JUN-2026",
+      "desc": "ຈ່າຍຄ່າຍິງໂຄສະນາເພີ່ມຍອດຂາຍ ແລະ ຜູ້ຕິດຕາມເຟສ Go+lab 06/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3226500.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-10",
+      "pv": "PV-005-JUN-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 08/06/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 8664.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-10",
+      "pv": "PV-006-JUN-2026",
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-10",
+      "pv": "PV-006-JUN-2026",
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "THB",
+      "in": 0,
+      "out": 2.98,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-11",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-11",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-11",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-11",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 9800000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-11",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-12",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-12",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 6300000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-12",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1850000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-12",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-12",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-13",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-13",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-13",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-13",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-15",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 3500000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-15",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-15",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-15",
+      "pv": "CR-002-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 200000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 490000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "001-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "LAK",
+      "in": 0,
+      "out": 13780000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": "001-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "THB",
+      "in": 20000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-16",
+      "pv": null,
+      "desc": "BANK-FEE",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 10500000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": "002-Jun-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 15/06/2026 10/03/2026 ແລະ 16/02/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 15888.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-17",
+      "pv": null,
+      "desc": "BANK-FEE",
+      "currency": "THB",
+      "in": 0,
+      "out": 2.96,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-18",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-18",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 20000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-18",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1190000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-18",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ ວັນທີ່ 16-17/06/2026",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-18",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-18",
+      "pv": "CR-003-Jun-2026",
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-19",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-21",
+      "pv": null,
+      "desc": "CHARGE FEE - Auto-Payment Maintenance Fee 05/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 16.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-23",
+      "pv": "003-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "LAK",
+      "in": 0,
+      "out": 15893000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-23",
+      "pv": "003-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "THB",
+      "in": 23000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-23",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-24",
+      "pv": "004-Jun-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 22/06/2026 06/04/2026 ແລະ 27/03/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 18776.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-24",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "THB",
+      "in": 0,
+      "out": 2.97,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 340000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 2240000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 270000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-25",
+      "pv": null,
+      "desc": "CHARGE FEE - Auto-Payment Maintenance Fee 05/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3500.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-26",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 200000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-29",
+      "pv": "CR-004-Jun-2026",
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ ວັນທີ່ 26/06/2026",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-29",
+      "pv": "005-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "LAK",
+      "in": 0,
+      "out": 6900000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-29",
+      "pv": "005-Jun-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "THB",
+      "in": 10000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-29",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-30",
+      "pv": "006-Jun-2026",
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 06/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 20389150.0,
+      "category": "ເງິນເດືອນ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-30",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 2800000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 750000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jun 2026",
+      "date": "2026-06-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 2100000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": "PV-001-Jul-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 29/06/2026  ແລະ 23/04/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 11072.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-01",
+      "pv": "PV-002-Jul-2026",
+      "desc": "ຈ່າຍຄ່າເຄື່ອງໃຊ້ຫ້ອງການ Go+lab ປະຈຳເດືອນ07/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 660000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-02",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-02",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-03",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1150000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-03",
+      "pv": "CR-001-Jul-2026",
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ ວັນທີ່ 03/07/2026",
+      "currency": "LAK",
+      "in": 420000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-04",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-04",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-04",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-06",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-07",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-07",
+      "pv": null,
+      "desc": "LAK ແລກ THB",
+      "currency": "LAK",
+      "in": 0,
+      "out": 6930000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-07",
+      "pv": null,
+      "desc": "LAK ແລກ THB",
+      "currency": "THB",
+      "in": 10000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-08",
+      "pv": "CR-002-Jul-2026",
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ ວັນທີ່ 08/07/2026",
+      "currency": "LAK",
+      "in": 490000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-08",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 279997.89,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-08",
+      "pv": "PV-003-Jul-2026",
+      "desc": "ຈ່າຍຄ່າ NUBWO COOLER PAD V2 NF212",
+      "currency": "LAK",
+      "in": 0,
+      "out": 291000.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-08",
+      "pv": "PV-004-Jul-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 07/07/2026 ແລະ 05/05/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 16040.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-08",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-08",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "THB",
+      "in": 0,
+      "out": 2.97,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-09",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-09",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-09",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 5270000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-10",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-10",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-10",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-11",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-13",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-13",
+      "pv": null,
+      "desc": "ເຄຍແອ້ດວັນ ສົ່ງເງີນຄືນຄ່າຍິງແອ້ດໂຄສະນາ",
+      "currency": "LAK",
+      "in": 60337.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 630000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-14",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": "PV-005-Jul-2026",
+      "desc": "ຈ່າຍຄ່າຍິງໂຄສະນາເພີ່ມຍອດຂາຍ ແລະ ຜູ້ຕິດຕາມເຟສ Go+lab 07/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2858536.24,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-15",
+      "pv": "PV-006-Jul-2026",
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-16",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-17",
+      "pv": null,
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ ວັນທີ່ 10-15/07/2026",
+      "currency": "LAK",
+      "in": 1632000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-17",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-17",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-17",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-17",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-17",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-17",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-18",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 480000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-20",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 240000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": "PV-007-Jul-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "LAK",
+      "in": 0,
+      "out": 8280000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": "PV-007-Jul-2026",
+      "desc": "LAK ແລກ THB",
+      "currency": "THB",
+      "in": 12000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": "PV-007-Jul-2026",
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 2000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-21",
+      "pv": null,
+      "desc": "CHARGE FEE - Auto-Payment Maintenance Fee",
+      "currency": "THB",
+      "in": 0,
+      "out": 16.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 100000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-22",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 1400000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-22",
+      "pv": "PV-008-Jul-2026",
+      "desc": "ຈ່າຍຄ່າອຸປະກອນປີ້ນຕິ້ງ ຍອດວັນທີ 21/07/2026",
+      "currency": "THB",
+      "in": 0,
+      "out": 9304.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-22",
+      "pv": "PV-009-Jul-2026",
+      "desc": "ຕັດເງີນ Go+lab ເຂົ້າ Go+point",
+      "currency": "LAK",
+      "in": 0,
+      "out": 1000000.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-22",
+      "pv": "BCEL Bank",
+      "desc": "ຄ່່າທຳນຽມໂອນ",
+      "currency": "THB",
+      "in": 0,
+      "out": 2.97,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 270000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-23",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-24",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 2100000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-25",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-25",
+      "pv": "I-Bank",
+      "desc": "CHARGE FEE - Auto-Payment Maintenance Fee 06/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3500.0,
+      "category": "ອື່ນໆ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ມອບເງິນສົດເຂົ້າທະນາຄານ ວັນທີ່ 27/07/2026",
+      "currency": "LAK",
+      "in": 280000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-27",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-28",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 100000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-28",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 480000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-29",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-29",
+      "pv": "PV-010-Jul-2026",
+      "desc": "ຈ່າຍຄ່າໄຟຟ້າເດືອນ 06/2026   5%",
+      "currency": "LAK",
+      "in": 0,
+      "out": 740696.0,
+      "category": "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-30",
+      "pv": "PV-011-Jul-2026",
+      "desc": "ເງິນເດືອນພະນັກງານ ປະຈຳເດືອນ 07/2026",
+      "currency": "LAK",
+      "in": 0,
+      "out": 19716484.0,
+      "category": "ເງິນເດືອນ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-30",
+      "pv": null,
+      "desc": "ຄ່າທຳນຽມໂອນ",
+      "currency": "LAK",
+      "in": 0,
+      "out": 3000.0,
+      "category": "ຄ່າທຳນຽມທະນາຄານ"
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 700000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-30",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 350000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-31",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-31",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 490000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-31",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-31",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 5600000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-31",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Jul 2026",
+      "date": "2026-07-31",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 210000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Aug 2026",
+      "date": "2026-08-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Aug 2026",
+      "date": "2026-08-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Aug 2026",
+      "date": "2026-08-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 70000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Aug 2026",
+      "date": "2026-08-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    },
+    {
+      "month": "Aug 2026",
+      "date": "2026-08-01",
+      "pv": null,
+      "desc": "ຮັບເງິນຄ່າປລິ່ນສະຕິກເກິ້",
+      "currency": "LAK",
+      "in": 140000.0,
+      "out": 0,
+      "category": null
+    }
+  ]
+}</script>
+<script>
+(function (global) {
+  "use strict";
+
+  function parseCSV(text) {
+    var rows = [];
+    var row = [];
+    var field = "";
+    var inQuotes = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          field += c;
+        }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ",") { row.push(field); field = ""; }
+        else if (c === "\r") { /* skip */ }
+        else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+        else field += c;
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function parseNum(v) {
+    if (v === null || v === undefined) return null;
+    var s = String(v).trim();
+    if (s === "") return null;
+    s = s.replace(/[₭฿$,]/g, "").trim();
+    if (s === "") return null;
+    var n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+
+  function round2(v) {
+    return typeof v === "number" ? Math.round(v * 100) / 100 : v;
+  }
+
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+  var MON_NAMES = {
+    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+    jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
+  };
+
+  // "1-Jan-26" / "31-Jul-26" -> "2026-01-01"
+  function parseDateDMonY(s) {
+    if (!s) return null;
+    var m = /^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/.exec(String(s).trim());
+    if (!m) return null;
+    var day = parseInt(m[1], 10);
+    var mon = MON_NAMES[m[2].toLowerCase()];
+    if (!mon) return null;
+    var year = m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10);
+    return year + "-" + pad2(mon) + "-" + pad2(day);
+  }
+
+  // "25/3/26" / "1/8/26" -> "2026-03-25"
+  function parseDateDMY(s) {
+    if (!s) return null;
+    var m = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(String(s).trim());
+    if (!m) return null;
+    var day = parseInt(m[1], 10);
+    var mon = parseInt(m[2], 10);
+    var year = m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10);
+    return year + "-" + pad2(mon) + "-" + pad2(day);
+  }
+
+  function gvizCsvUrl(sheetId, tabName) {
+    return "https://docs.google.com/spreadsheets/d/" + sheetId +
+      "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(tabName) + "&_=" + Date.now();
+  }
+
+  function fetchTabCSV(sheetId, tabName, timeoutMs) {
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var timer = null;
+    if (ctrl && timeoutMs) {
+      timer = setTimeout(function () { ctrl.abort(); }, timeoutMs);
+    }
+    var opts = { cache: "no-store" };
+    if (ctrl) opts.signal = ctrl.signal;
+    return fetch(gvizCsvUrl(sheetId, tabName), opts)
+      .then(function (r) {
+        if (timer) clearTimeout(timer);
+        if (!r.ok) throw new Error("HTTP " + r.status + " for tab " + tabName);
+        return r.text();
+      })
+      .then(function (text) { return parseCSV(text); })
+      .catch(function (e) {
+        if (timer) clearTimeout(timer);
+        throw e;
+      });
+  }
+
+  global.CsvUtil = {
+    parseCSV: parseCSV,
+    parseNum: parseNum,
+    round2: round2,
+    pad2: pad2,
+    parseDateDMonY: parseDateDMonY,
+    parseDateDMY: parseDateDMY,
+    gvizCsvUrl: gvizCsvUrl,
+    fetchTabCSV: fetchTabCSV
+  };
+})(window);
+
+</script>
+<script>
+(function (global) {
+  "use strict";
+  var U = global.CsvUtil;
+
+  var SHEET_ID = "1Jk-kJugu9A3ER5ufYDjgD-9YS06KKxrFZNW6tGu6fJw";
+  var MONTHS = ["Apr 2026", "May 2026", "Jun 2026", "Jul 2026", "Aug 2026"];
+
+  // per-month column layout: 0=date,1=pv,2=desc always; cash/debt currency columns vary
+  var COLMAP = {
+    "Apr 2026": { cash: { LAK: [3, 4, 5] }, debt: { LAK: [6, 7, 8], THB: [9, 10, 11] } },
+    "May 2026": { cash: { LAK: [3, 4, 5], THB: [6, 7, 8] }, debt: { LAK: [9, 10, 11], THB: [12, 13, 14] } },
+    "Jun 2026": { cash: { LAK: [3, 4, 5], THB: [6, 7, 8] }, debt: { LAK: [9, 10, 11], THB: [12, 13, 14] } },
+    "Jul 2026": { cash: { LAK: [3, 4, 5], THB: [6, 7, 8] }, debt: { LAK: [9, 10, 11], THB: [12, 13, 14] } },
+    "Aug 2026": { cash: { LAK: [3, 4, 5], THB: [6, 7, 8] }, debt: { LAK: [9, 10, 11], THB: [12, 13, 14] } }
+  };
+
+  function categorize(desc) {
+    if (!desc) return "ອື່ນໆ";
+    var d = desc;
+    if (d.indexOf("ເງິນເດືອນ") !== -1) return "ເງິນເດືອນ";
+    if (d.indexOf("ຄ່າທຳນຽມ") !== -1 || d.indexOf("ຄ່າທໍານຽມ") !== -1) return "ຄ່າທຳນຽມທະນາຄານ";
+    if (d.indexOf("ຄອມພິວເຕີ") !== -1 || d.indexOf("ຄອມພິມເຕີ") !== -1) return "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ";
+    if (d.indexOf("ສະຕິກເກິ້") !== -1 || d.indexOf("ສະຕິກເກີ") !== -1 || d.indexOf("ປລິ່ນ") !== -1) return "ລາຍຮັບຄ່າພິມ/ສະຕິກເກີ້";
+    if (d.indexOf("ໂອນຍ້າຍເງິນ") !== -1) return "ໂອນຍ້າຍລະຫວ່າງບັນຊີ";
+    if (d.indexOf("ມອບເງິນສົດເຂົ້າທະນາຄານ") !== -1 || d.indexOf("ມອບເງິນເຂົ້າທະນາຄານ") !== -1) return "ຝາກເງິນເຂົ້າທະນາຄານ";
+    if (d.indexOf("ຊື້") !== -1 || d.indexOf("ຄ່າ") !== -1) return "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ";
+    return "ອື່ນໆ";
+  }
+
+  function buildMonth(mname, rows) {
+    var map = COLMAP[mname];
+    var cashCurs = Object.keys(map.cash);
+    var debtCurs = Object.keys(map.debt);
+    var openRow = rows[1] || [];
+
+    var opening = {}, closing = {}, totals = {};
+    cashCurs.forEach(function (cur) {
+      var v = U.parseNum(openRow[map.cash[cur][2]]);
+      opening[cur] = v; closing[cur] = v; totals[cur] = { in: 0, out: 0 };
+    });
+    var debtOpening = {}, debtClosing = {}, debtTotals = {};
+    debtCurs.forEach(function (cur) {
+      var v = U.parseNum(openRow[map.debt[cur][2]]);
+      debtOpening[cur] = v; debtClosing[cur] = v; debtTotals[cur] = { in: 0, out: 0 };
+    });
+
+    var txCount = 0, lastDateStr = null, tx = [];
+
+    for (var r = 2; r < rows.length; r++) {
+      var row = rows[r];
+      var dateRaw = (row[0] || "").trim();
+      var desc = (row[2] || "").trim();
+      var dateParsed = dateRaw ? U.parseDateDMY(dateRaw) : null;
+      if (!dateParsed && !desc) break;
+      var dateStr;
+      if (dateParsed) { dateStr = dateParsed; lastDateStr = dateParsed; }
+      else dateStr = lastDateStr;
+
+      var pv = (row[1] || "").trim() || null;
+      var rowHasTx = false;
+
+      cashCurs.forEach(function (cur) {
+        var cm = map.cash[cur];
+        var vin = U.parseNum(row[cm[0]]), vout = U.parseNum(row[cm[1]]), vbal = U.parseNum(row[cm[2]]);
+        if (vbal !== null) closing[cur] = vbal;
+        if ((vin !== null && vin !== 0) || (vout !== null && vout !== 0)) {
+          rowHasTx = true;
+          totals[cur].in += vin || 0;
+          totals[cur].out += vout || 0;
+          tx.push({
+            month: mname, date: dateStr, pv: pv, desc: desc || null, currency: cur,
+            in: U.round2(vin || 0), out: U.round2(vout || 0),
+            category: (vout && vout !== 0) ? categorize(desc) : null
+          });
+        }
+      });
+      debtCurs.forEach(function (cur) {
+        var cm = map.debt[cur];
+        var vin = U.parseNum(row[cm[0]]), vout = U.parseNum(row[cm[1]]), vbal = U.parseNum(row[cm[2]]);
+        if (vbal !== null) debtClosing[cur] = vbal;
+        if ((vin !== null && vin !== 0) || (vout !== null && vout !== 0)) {
+          debtTotals[cur].in += vin || 0;
+          debtTotals[cur].out += vout || 0;
+        }
+      });
+      if (rowHasTx) txCount++;
+    }
+
+    return {
+      month: mname, opening: opening, closing: closing, totals: totals, tx_count: txCount, tx: tx,
+      debt: { opening: debtOpening, closing: debtClosing, totals: debtTotals }
+    };
+  }
+
+  function buildSummary(rows) {
+    var out = [];
+    for (var r = 1; r < rows.length; r++) {
+      var row = rows[r];
+      if (!row || !row[1]) continue;
+      out.push({
+        bank_code: row[1], company: row[2], account_type: row[3], gl_account: row[4],
+        bank_account_number: row[5], currency: row[6],
+        transaction_currency_balance: U.parseNum(row[7]), reserve_amount: U.parseNum(row[8]),
+        available_balance: U.parseNum(row[9]), rate: U.parseNum(row[10]),
+        total_lak_equivalent: U.parseNum(row[11])
+      });
+    }
+    return out;
+  }
+
+  function fetchGolapLive(timeoutMs) {
+    var tabPromises = MONTHS.map(function (m) { return U.fetchTabCSV(SHEET_ID, m, timeoutMs); });
+    tabPromises.push(U.fetchTabCSV(SHEET_ID, "Summary", timeoutMs));
+
+    return Promise.all(tabPromises).then(function (results) {
+      var monthResults = results.slice(0, MONTHS.length);
+      var summaryRows = results[results.length - 1];
+
+      var months = [], debtMonths = [], allTx = [];
+      MONTHS.forEach(function (mname, i) {
+        var built = buildMonth(mname, monthResults[i]);
+        if (built.opening.LAK === null && months.length) {
+          built.opening = JSON.parse(JSON.stringify(months[months.length - 1].closing));
+        }
+        if (built.debt.opening.LAK === null && debtMonths.length) {
+          built.debt.opening = JSON.parse(JSON.stringify(debtMonths[debtMonths.length - 1].closing));
+        }
+        months.push({ month: built.month, opening: built.opening, closing: built.closing, totals: built.totals, tx_count: built.tx_count });
+        debtMonths.push({ month: built.month, opening: built.debt.opening, closing: built.debt.closing, totals: built.debt.totals });
+        allTx = allTx.concat(built.tx);
+      });
+
+      var itemTotals = {}, itemTxCount = {}, catTotals = {};
+      allTx.forEach(function (t) {
+        if (t.currency === "LAK" && t.out) {
+          var key = t.desc || "(ບໍ່ລະບຸ)";
+          itemTotals[key] = (itemTotals[key] || 0) + t.out;
+          itemTxCount[key] = (itemTxCount[key] || 0) + 1;
+          var c = categorize(t.desc);
+          catTotals[c] = (catTotals[c] || 0) + t.out;
+        }
+      });
+      var topItems = Object.keys(itemTotals)
+        .map(function (k) { return { desc: k, total_paid: itemTotals[k], tx_count: itemTxCount[k] }; })
+        .sort(function (a, b) { return b.total_paid - a.total_paid; })
+        .slice(0, 15);
+      var categories = Object.keys(catTotals)
+        .map(function (k) { return { category: k, total: catTotals[k] }; })
+        .sort(function (a, b) { return b.total - a.total; });
+
+      var transactions = allTx.map(function (t) {
+        return { month: t.month, date: t.date, pv: t.pv, desc: t.desc, currency: t.currency, in: t.in, out: t.out, category: t.category };
+      });
+
+      return {
+        months: months,
+        debt_months: debtMonths,
+        summary_accounts: buildSummary(summaryRows),
+        top_items: topItems,
+        categories: categories,
+        overall: { total_tx: allTx.length },
+        transactions: transactions
+      };
+    });
+  }
+
+  global.fetchGolapLive = fetchGolapLive;
+})(window);
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("dashboard-data").textContent);
+  var MONTH_LABEL = {
+    "Apr 2026": "ເມ.ສ", "May 2026": "ພ.ພ", "Jun 2026": "ມິ.ຖ", "Jul 2026": "ກ.ລ", "Aug 2026": "ສ.ຫ"
+  };
+  var CAT_COLOR = {
+    "ອື່ນໆ": "var(--ink-muted)",
+    "ເງິນເດືອນ": "var(--s3)",
+    "ຄ່າໃຊ້ຈ່າຍ/ຊື້ອຸປະກອນ": "var(--s1)",
+    "ລາຍຮັບຄ່າພິມ/ສະຕິກເກີ້": "var(--s4)",
+    "ຄ່າທຳນຽມທະນາຄານ": "var(--s2)",
+    "ໂອນຍ້າຍລະຫວ່າງບັນຊີ": "var(--s7)",
+    "ຝາກເງິນເຂົ້າທະນາຄານ": "var(--s5)"
+  };
+  var CUR_DECIMALS = { LAK: 0, THB: 2 };
+
+  function fmt(v, decimals) {
+    if (v === null || v === undefined || isNaN(v)) return "-";
+    return v.toLocaleString("en-US", { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
+  }
+  function fmtCur(v, cur) { return fmt(v, CUR_DECIMALS[cur] !== undefined ? CUR_DECIMALS[cur] : 2); }
+  function fmtCompact(v) {
+    var sign = v < 0 ? "-" : "";
+    var a = Math.abs(v);
+    if (a >= 1e6) return sign + (a / 1e6).toFixed(1) + "M";
+    if (a >= 1e3) return sign + (a / 1e3).toFixed(0) + "K";
+    return sign + a.toFixed(0);
+  }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+  function svgEl(name, attrs) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var tooltip = document.getElementById("tooltip");
+  function showTooltip(x, y, html) {
+    tooltip.innerHTML = html;
+    tooltip.style.left = x + "px";
+    tooltip.style.top = (y - 10) + "px";
+    tooltip.style.opacity = "1";
+  }
+  function hideTooltip() { tooltip.style.opacity = "0"; }
+
+  function monthDisplay(m) { return m; }
+
+  function lastDateInfo() {
+    var maxDate = null;
+    DATA.transactions.forEach(function (t) { if (t.date && (!maxDate || t.date > maxDate)) maxDate = t.date; });
+    return maxDate;
+  }
+
+  // ---------------------------------------------------------------- KPIs
+  function renderKPIs() {
+    var grid = document.getElementById("kpiGrid");
+    var acc = {};
+    DATA.summary_accounts.forEach(function (a) { acc[a.currency] = a; });
+    var totalLak = DATA.summary_accounts.reduce(function (s, a) { return s + a.total_lak_equivalent; }, 0);
+    var firstOpen = DATA.months[0].opening.LAK;
+    var lastClose = DATA.months[DATA.months.length - 1].closing.LAK;
+    var delta = lastClose - firstOpen;
+    var deltaPct = firstOpen ? (delta / firstOpen) * 100 : 0;
+    var firstMonthLbl = MONTH_LABEL[DATA.months[0].month] || DATA.months[0].month;
+    var lastMonthLbl = MONTH_LABEL[DATA.months[DATA.months.length - 1].month] || DATA.months[DATA.months.length - 1].month;
+
+    var cards = [
+      {
+        lead: true,
+        label: "ຍອດເງິນທີ່ໃຊ້ໄດ້ລວມ (ທຽບເທົ່າກີບ)",
+        value: "₭" + fmt(totalLak, 0),
+        sub: "ຈາກ 2 ບັນຊີທະນາຄານ BCEL (LAK · THB)"
+      },
+      {
+        label: "ບັນຊີ LAK",
+        value: "₭" + fmt(acc.LAK.transaction_currency_balance, 0),
+        sub: "ສຳຮອງ ₭" + fmt(acc.LAK.reserve_amount, 0) + " · ໃຊ້ໄດ້ ₭" + fmt(acc.LAK.available_balance, 0)
+      },
+      {
+        label: "ບັນຊີ THB",
+        value: "฿" + fmt(acc.THB.transaction_currency_balance, 2),
+        sub: "≈ ₭" + fmt(acc.THB.total_lak_equivalent, 0) + " · ອັດຕາ " + fmt(acc.THB.rate, 2)
+      },
+      {
+        label: "ຈຳນວນທຸລະກຳ (" + DATA.months.length + " ເດືອນ)",
+        value: fmt(DATA.overall.total_tx, 0),
+        sub: fmt(Math.round(DATA.overall.total_tx / DATA.months.length), 0) + " ລາຍການ/ເດືອນ ໂດຍສະເລ່ຍ"
+      },
+      {
+        label: "ການປ່ຽນແປງ LAK (" + firstMonthLbl + " → " + lastMonthLbl + ")",
+        value: (delta >= 0 ? "+" : "") + "₭" + fmt(delta, 0),
+        sub: "",
+        delta: deltaPct
+      }
+    ];
+
+    cards.forEach(function (c) {
+      var card = el("div", "kpi" + (c.lead ? " lead" : ""));
+      card.appendChild(el("div", "kpi-label", c.label));
+      card.appendChild(el("div", "kpi-value", c.value));
+      if (c.delta !== undefined) {
+        var d = el("div", "kpi-delta " + (c.delta >= 0 ? "up" : "down"),
+          (c.delta >= 0 ? "▲ " : "▼ ") + Math.abs(c.delta).toFixed(1) + "%");
+        card.appendChild(d);
+      } else if (c.sub) {
+        card.appendChild(el("div", "kpi-sub", c.sub));
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------------------------------------------------------- flow chart
+  function renderFlowChart() {
+    var host = document.getElementById("flowChart");
+    var W = 960, H = 300, ML = 54, MR = 10, MT = 30, MB = 34;
+    var plotW = W - ML - MR, plotH = H - MT - MB;
+    var months = DATA.months;
+    var n = months.length;
+    var maxV = 0;
+    months.forEach(function (m) {
+      maxV = Math.max(maxV, m.totals.LAK.in, m.totals.LAK.out);
+    });
+    var magnitude = Math.pow(10, Math.floor(Math.log10(maxV || 1)));
+    maxV = Math.ceil(maxV / magnitude) * magnitude;
+    if (maxV === 0) maxV = 1e6;
+
+    var svg = svgEl("svg", { class: "chart", viewBox: "0 0 " + W + " " + H });
+    var groupW = plotW / n;
+    var barW = groupW * 0.24;
+    var gap = groupW * 0.08;
+
+    var ticks = 4;
+    for (var t = 0; t <= ticks; t++) {
+      var val = (maxV / ticks) * t;
+      var y = MT + plotH - (val / maxV) * plotH;
+      svg.appendChild(svgEl("line", { class: "grid-line", x1: ML, x2: W - MR, y1: y, y2: y }));
+      var lbl = svgEl("text", { class: "axis-label", x: ML - 8, y: y + 3, "text-anchor": "end" });
+      lbl.textContent = t === 0 ? "0" : fmtCompact(val);
+      svg.appendChild(lbl);
+    }
+
+    months.forEach(function (m, i) {
+      var gx = ML + i * groupW;
+      var inV = m.totals.LAK.in, outV = m.totals.LAK.out;
+      var inH = (inV / maxV) * plotH, outH = (outV / maxV) * plotH;
+      var xIn = gx + groupW / 2 - gap / 2 - barW;
+      var xOut = gx + groupW / 2 + gap / 2;
+      var yIn = MT + plotH - inH, yOut = MT + plotH - outH;
+
+      svg.appendChild(svgEl("rect", { x: xIn, y: yIn, width: barW, height: Math.max(inH, 1), rx: 3, fill: "var(--s1)" }));
+      svg.appendChild(svgEl("rect", { x: xOut, y: yOut, width: barW, height: Math.max(outH, 1), rx: 3, fill: "var(--s8)" }));
+
+      var net = inV - outV;
+      var topY = Math.min(yIn, yOut) - 8;
+      var netLbl = svgEl("text", {
+        class: "bar-value " + (net >= 0 ? "net-good" : "net-bad"),
+        x: gx + groupW / 2, y: Math.max(topY, MT + 10), "text-anchor": "middle"
+      });
+      netLbl.textContent = (net >= 0 ? "+" : "") + fmtCompact(net);
+      svg.appendChild(netLbl);
+
+      var mLbl = svgEl("text", { class: "month-label", x: gx + groupW / 2, y: H - 10, "text-anchor": "middle" });
+      mLbl.textContent = MONTH_LABEL[m.month] || m.month;
+      svg.appendChild(mLbl);
+
+      var hit = svgEl("rect", { x: gx, y: MT, width: groupW, height: plotH, fill: "transparent", style: "cursor:pointer" });
+      hit.addEventListener("mousemove", function (ev) {
+        var rect = host.getBoundingClientRect();
+        showTooltip(ev.clientX, rect.top + window.scrollY, "" +
+          "<div class='tt-title'>" + monthDisplay(m.month) + "</div>" +
+          "<div class='tt-row'><span class='k'>ຮັບເຂົ້າ</span><span>₭" + fmt(inV, 0) + "</span></div>" +
+          "<div class='tt-row'><span class='k'>ຈ່າຍອອກ</span><span>₭" + fmt(outV, 0) + "</span></div>" +
+          "<div class='tt-row'><span class='k'>ສຸດທິ</span><span>" + (net >= 0 ? "+" : "") + "₭" + fmt(net, 0) + "</span></div>" +
+          "<div class='tt-row'><span class='k'>ທຸລະກຳ</span><span>" + m.tx_count + "</span></div>");
+      });
+      hit.addEventListener("mouseleave", hideTooltip);
+      svg.appendChild(hit);
+    });
+
+    host.appendChild(svg);
+  }
+
+  // ------------------------------------------------------- balance charts
+  function drawTrendChart(chartHost, vals, monthsArr, color, fmtV) {
+    var n = vals.length;
+    var W = 460, H = 170, ML = 8, MR = 8, MT = 16, MB = 24;
+    var plotW = W - ML - MR, plotH = H - MT - MB;
+    var minV = Math.min.apply(null, vals), maxV = Math.max.apply(null, vals);
+    if (minV === maxV) { minV -= 1; maxV += 1; }
+    var pad = (maxV - minV) * 0.15;
+    minV -= pad; maxV += pad;
+
+    var svg = svgEl("svg", { class: "chart", viewBox: "0 0 " + W + " " + H });
+    function xAt(i) { return ML + (plotW * i) / (n - 1); }
+    function yAt(v) { return MT + plotH - ((v - minV) / (maxV - minV)) * plotH; }
+
+    [0, 0.5, 1].forEach(function (f) {
+      var y = MT + plotH * f;
+      svg.appendChild(svgEl("line", { class: "grid-line", x1: ML, x2: W - MR, y1: y, y2: y }));
+    });
+
+    var pathD = vals.map(function (v, i) { return (i === 0 ? "M" : "L") + xAt(i) + "," + yAt(v); }).join(" ");
+    var areaD = pathD + " L" + xAt(n - 1) + "," + (MT + plotH) + " L" + xAt(0) + "," + (MT + plotH) + " Z";
+    var areaId = "area-" + Math.random().toString(36).slice(2);
+    var grad = svgEl("linearGradient", { id: areaId, x1: "0", y1: "0", x2: "0", y2: "1" });
+    grad.appendChild(svgEl("stop", { offset: "0%", "stop-color": color, "stop-opacity": "0.22" }));
+    grad.appendChild(svgEl("stop", { offset: "100%", "stop-color": color, "stop-opacity": "0" }));
+    var defs = svgEl("defs", {}); defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    svg.appendChild(svgEl("path", { d: areaD, fill: "url(#" + areaId + ")", stroke: "none" }));
+    svg.appendChild(svgEl("path", { d: pathD, fill: "none", stroke: color, "stroke-width": "2", "stroke-linejoin": "round", "stroke-linecap": "round" }));
+
+    vals.forEach(function (v, i) {
+      var r = (i === n - 1) ? 3.5 : 2;
+      svg.appendChild(svgEl("circle", { cx: xAt(i), cy: yAt(v), r: r, fill: color, stroke: "var(--surface)", "stroke-width": "1.5" }));
+    });
+    var endLbl = svgEl("text", { x: xAt(n - 1), y: yAt(vals[n - 1]) - 9, "text-anchor": "end", class: "bar-value" });
+    endLbl.textContent = fmtV(vals[n - 1]);
+    svg.appendChild(endLbl);
+
+    monthsArr.forEach(function (m, i) {
+      if (i === 0 || i === n - 1 || i === Math.floor(n / 2)) {
+        var lbl = svgEl("text", { class: "axis-label", x: xAt(i), y: H - 6, "text-anchor": i === 0 ? "start" : (i === n - 1 ? "end" : "middle") });
+        lbl.textContent = MONTH_LABEL[m.month] || m.month;
+        svg.appendChild(lbl);
+      }
+    });
+
+    var guide = svgEl("line", { class: "hover-guide", x1: 0, x2: 0, y1: MT, y2: MT + plotH });
+    var hoverDot = svgEl("circle", { class: "hover-dot", r: 4, fill: color, stroke: "var(--surface)", "stroke-width": "2" });
+    svg.appendChild(guide); svg.appendChild(hoverDot);
+
+    var hit = svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: "transparent" });
+    hit.addEventListener("mousemove", function (ev) {
+      var box = svg.getBoundingClientRect();
+      var relX = (ev.clientX - box.left) * (W / box.width);
+      var i = Math.round(((relX - ML) / plotW) * (n - 1));
+      i = Math.max(0, Math.min(n - 1, i));
+      guide.setAttribute("x1", xAt(i)); guide.setAttribute("x2", xAt(i)); guide.style.opacity = "1";
+      hoverDot.setAttribute("cx", xAt(i)); hoverDot.setAttribute("cy", yAt(vals[i])); hoverDot.style.opacity = "1";
+      showTooltip(ev.clientX, box.top + window.scrollY, "" +
+        "<div class='tt-title'>" + monthDisplay(monthsArr[i].month) + "</div>" +
+        "<div class='tt-row'><span class='k'>ຍອດຄົງເຫຼືອ</span><span>" + fmtV(vals[i]) + "</span></div>");
+    });
+    hit.addEventListener("mouseleave", function () {
+      guide.style.opacity = "0"; hoverDot.style.opacity = "0"; hideTooltip();
+    });
+    svg.appendChild(hit);
+
+    chartHost.appendChild(svg);
+  }
+
+  function renderBalanceCharts() {
+    var host = document.getElementById("balanceCharts");
+    var series = [
+      { cur: "LAK", label: "ບັນຊີ LAK", color: "var(--accent)", fmtV: function (v) { return "₭" + fmtCompact(v); } },
+      { cur: "THB", label: "ບັນຊີ THB", color: "var(--s7)", fmtV: function (v) { return "฿" + fmt(v, 0); } }
+    ];
+
+    series.forEach(function (s) {
+      var vals = DATA.months.map(function (m) { return m.closing[s.cur]; }).filter(function (v) { return v !== undefined && v !== null; });
+      if (!vals.length) return;
+      var wrap = el("div", "card");
+      wrap.appendChild(el("div", "section-title", s.label));
+      var chartHost = el("div", "chart-wrap");
+      wrap.appendChild(chartHost);
+      host.appendChild(wrap);
+      drawTrendChart(chartHost, vals, DATA.months, s.color, s.fmtV);
+    });
+  }
+
+  // ------------------------------------------------------------ debt (AR/AP)
+  function renderDebtSection() {
+    var kpiGrid = document.getElementById("debtKpiGrid");
+    var chartHost = document.getElementById("debtCharts");
+    if (!kpiGrid || !chartHost || !DATA.debt_months || !DATA.debt_months.length) return;
+    var dm = DATA.debt_months;
+    var last = dm[dm.length - 1];
+    var first = dm[0];
+
+    ["LAK", "THB"].forEach(function (cur) {
+      if (last.closing[cur] === undefined || last.closing[cur] === null) return;
+      var openV = first.opening[cur];
+      var delta = (openV !== null && openV !== undefined) ? last.closing[cur] - openV : null;
+      var card = el("div", "kpi");
+      card.appendChild(el("div", "kpi-label", "ໜີ້ຄົງເຫຼືອ " + cur));
+      card.appendChild(el("div", "kpi-value", (cur === "LAK" ? "₭" : "฿") + fmt(last.closing[cur], cur === "LAK" ? 0 : 2)));
+      if (delta !== null) {
+        card.appendChild(el("div", "kpi-sub", "ຈາກ " + (MONTH_LABEL[first.month] || first.month) + ": " + (delta >= 0 ? "+" : "") + (cur === "LAK" ? "₭" : "฿") + fmt(delta, cur === "LAK" ? 0 : 2)));
+      }
+      kpiGrid.appendChild(card);
+    });
+
+    var series = [
+      { cur: "LAK", label: "ໜີ້ຄົງເຫຼືອ LAK", color: "var(--gold)", fmtV: function (v) { return "₭" + fmtCompact(v); } },
+      { cur: "THB", label: "ໜີ້ຄົງເຫຼືອ THB", color: "var(--s5)", fmtV: function (v) { return "฿" + fmt(v, 0); } }
+    ];
+    series.forEach(function (s) {
+      var vals = dm.map(function (m) { return m.closing[s.cur]; }).filter(function (v) { return v !== undefined && v !== null; });
+      if (!vals.length) return;
+      var wrap = el("div", "card");
+      wrap.appendChild(el("div", "section-title", s.label));
+      var ch = el("div", "chart-wrap");
+      wrap.appendChild(ch);
+      chartHost.appendChild(wrap);
+      drawTrendChart(ch, vals, dm, s.color, s.fmtV);
+    });
+  }
+
+  // ------------------------------------------------------------- hbars
+  function renderHBars(hostId, items, opts) {
+    var host = document.getElementById(hostId);
+    var maxV = Math.max.apply(null, items.map(function (it) { return opts.value(it); }));
+    items.forEach(function (it) {
+      var v = opts.value(it);
+      var pct = maxV ? (v / maxV) * 100 : 0;
+      var row = el("div", "hbar-row");
+      row.appendChild(el("div", "hbar-label", opts.label(it)));
+      var track = el("div", "hbar-track");
+      var fill = el("div", "hbar-fill");
+      fill.style.width = pct + "%";
+      fill.style.background = opts.color(it);
+      track.appendChild(fill);
+      row.appendChild(track);
+      var valWrap = el("div");
+      valWrap.appendChild(el("div", "hbar-value", opts.valueLabel(it)));
+      if (opts.sub) valWrap.appendChild(el("div", "hbar-count", opts.sub(it)));
+      row.appendChild(valWrap);
+      host.appendChild(row);
+    });
+  }
+
+  function renderCategoryChart() {
+    renderHBars("categoryChart", DATA.categories, {
+      value: function (c) { return c.total; },
+      label: function (c) { return c.category; },
+      color: function (c) { return CAT_COLOR[c.category] || "var(--ink-muted)"; },
+      valueLabel: function (c) { return "₭" + fmtCompact(c.total); }
+    });
+  }
+  function renderItemChart() {
+    renderHBars("itemChart", DATA.top_items.slice(0, 10), {
+      value: function (s) { return s.total_paid; },
+      label: function (s) { return s.desc; },
+      color: function () { return "var(--gold)"; },
+      valueLabel: function (s) { return "₭" + fmtCompact(s.total_paid); },
+      sub: function (s) { return s.tx_count + " ລາຍການ"; }
+    });
+  }
+
+  // --------------------------------------------------------- accounts table
+  function renderAccountsTable() {
+    var t = document.getElementById("accountsTable");
+    var thead = el("thead");
+    var htr = el("tr");
+    ["ທະນາຄານ", "ເລກບັນຊີ", "ສະກຸນ", "ຍອດຄົງເຫຼືອ", "ສຳຮອງ", "ໃຊ້ໄດ້ຈິງ", "ອັດຕາແລກປ່ຽນ", "ທຽບເທົ່າກີບ"]
+      .forEach(function (h, i) { var th = el("th", i >= 3 ? "num" : "", h); htr.appendChild(th); });
+    thead.appendChild(htr);
+    t.appendChild(thead);
+    var tbody = el("tbody");
+    DATA.summary_accounts.forEach(function (a) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "", a.bank_code + " · " + a.company));
+      tr.appendChild(el("td", "", String(a.bank_account_number)));
+      tr.appendChild(el("td", "", "<span class='cur-badge " + a.currency + "'>" + a.currency + "</span>"));
+      tr.appendChild(el("td", "num", fmtCur(a.transaction_currency_balance, a.currency)));
+      tr.appendChild(el("td", "num", fmtCur(a.reserve_amount, a.currency)));
+      tr.appendChild(el("td", "num", fmtCur(a.available_balance, a.currency)));
+      tr.appendChild(el("td", "num", fmt(a.rate, a.currency === "LAK" ? 0 : 2)));
+      tr.appendChild(el("td", "num", "₭" + fmt(a.total_lak_equivalent, 0)));
+      tbody.appendChild(tr);
+    });
+    var totalRow = el("tr");
+    totalRow.appendChild(el("td", "", "<b>ລວມທັງໝົດ</b>"));
+    totalRow.appendChild(el("td", "")); totalRow.appendChild(el("td", ""));
+    totalRow.appendChild(el("td", "")); totalRow.appendChild(el("td", "")); totalRow.appendChild(el("td", ""));
+    totalRow.appendChild(el("td", ""));
+    var total = DATA.summary_accounts.reduce(function (s, a) { return s + a.total_lak_equivalent; }, 0);
+    totalRow.appendChild(el("td", "num", "<b>₭" + fmt(total, 0) + "</b>"));
+    tbody.appendChild(totalRow);
+    t.appendChild(tbody);
+  }
+
+  // -------------------------------------------------------------- transactions
+  var txState = { search: "", month: "", category: "", currency: "", page: 0, pageSize: 50 };
+
+  function txFiltered() {
+    var q = txState.search.trim().toLowerCase();
+    return DATA.transactions.filter(function (t) {
+      if (txState.month && t.month !== txState.month) return false;
+      if (txState.category && t.category !== txState.category) return false;
+      if (txState.currency && t.currency !== txState.currency) return false;
+      if (q) {
+        var hay = ((t.desc || "") + " " + (t.pv || "")).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderTxControls() {
+    var monthSel = document.getElementById("txMonth");
+    DATA.months.forEach(function (m) {
+      var o = el("option", "", (MONTH_LABEL[m.month] || m.month) + " (" + m.month + ")");
+      o.value = m.month;
+      monthSel.appendChild(o);
+    });
+    var catSel = document.getElementById("txCategory");
+    DATA.categories.forEach(function (c) {
+      var o = el("option", "", c.category);
+      o.value = c.category;
+      catSel.appendChild(o);
+    });
+    monthSel.addEventListener("change", function () { txState.month = monthSel.value; txState.page = 0; renderTxTable(); });
+    catSel.addEventListener("change", function () { txState.category = catSel.value; txState.page = 0; renderTxTable(); });
+    document.getElementById("txSearch").addEventListener("input", function (ev) {
+      txState.search = ev.target.value; txState.page = 0; renderTxTable();
+    });
+    var pills = document.querySelectorAll("#txCurrencyPills .pill");
+    pills.forEach(function (p) {
+      p.addEventListener("click", function () {
+        pills.forEach(function (pp) { pp.setAttribute("aria-pressed", "false"); });
+        p.setAttribute("aria-pressed", "true");
+        txState.currency = p.getAttribute("data-cur");
+        txState.page = 0;
+        renderTxTable();
+      });
+    });
+    document.getElementById("txPrev").addEventListener("click", function () {
+      if (txState.page > 0) { txState.page--; renderTxTable(); }
+    });
+    document.getElementById("txNext").addEventListener("click", function () {
+      var total = txFiltered().length;
+      var maxPage = Math.max(0, Math.ceil(total / txState.pageSize) - 1);
+      if (txState.page < maxPage) { txState.page++; renderTxTable(); }
+    });
+  }
+
+  function renderTxTable() {
+    var rows = txFiltered();
+    var total = rows.length;
+    var maxPage = Math.max(0, Math.ceil(total / txState.pageSize) - 1);
+    if (txState.page > maxPage) txState.page = maxPage;
+    var start = txState.page * txState.pageSize;
+    var pageRows = rows.slice(start, start + txState.pageSize);
+
+    var tbody = document.getElementById("txBody");
+    tbody.innerHTML = "";
+    var empty = document.getElementById("txEmpty");
+    empty.style.display = pageRows.length ? "none" : "block";
+
+    pageRows.forEach(function (t) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "", t.date ? t.date.slice(5).split("-").reverse().join("/") : "-"));
+      var descCell = el("td", "desc-cell");
+      descCell.appendChild(el("div", "desc-main", t.desc || "-"));
+      if (t.category) descCell.appendChild(el("span", "cat-tag", t.category));
+      tr.appendChild(descCell);
+      tr.appendChild(el("td", "", t.pv || "<span style='color:var(--ink-muted)'>—</span>"));
+      tr.appendChild(el("td", "num", t.in ? fmtCur(t.in, t.currency) : ""));
+      tr.appendChild(el("td", "num", t.out ? fmtCur(t.out, t.currency) : ""));
+      tr.appendChild(el("td", "", "<span class='cur-badge " + t.currency + "'>" + t.currency + "</span>"));
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("txResultCount").textContent = fmt(total, 0) + " ລາຍການ";
+    document.getElementById("txPageStatus").textContent =
+      total === 0 ? "" : ("ໜ້າ " + (txState.page + 1) + " / " + (maxPage + 1));
+    document.getElementById("txPrev").disabled = txState.page <= 0;
+    document.getElementById("txNext").disabled = txState.page >= maxPage;
+    document.getElementById("txSectionNote").textContent =
+      DATA.overall.total_tx + " ລາຍການ ຕະຫຼອດ " + DATA.months.length + " ເດືອນ · ຄົ້ນຫາ ຫຼື ກັ່ນຕອງໄດ້ຂ້າງລຸ່ມ";
+  }
+
+  function renderLastUpdated() {
+    var d = lastDateInfo();
+    var pill = document.getElementById("lastUpdatedPill");
+    if (d) {
+      var parts = d.split("-");
+      pill.textContent = "ອັບເດດຫຼ້າສຸດ " + parts[2] + "/" + parts[1] + "/" + parts[0];
+    }
+  }
+
+  // ------------------------------------------------------------------ boot
+  function clearAll() {
+    document.getElementById("kpiGrid").innerHTML = "";
+    document.getElementById("flowChart").innerHTML = "";
+    document.getElementById("balanceCharts").innerHTML = "";
+    document.getElementById("categoryChart").innerHTML = "";
+    document.getElementById("itemChart").innerHTML = "";
+    document.getElementById("accountsTable").innerHTML = "";
+    var debtKpiGrid = document.getElementById("debtKpiGrid");
+    if (debtKpiGrid) debtKpiGrid.innerHTML = "";
+    var debtCharts = document.getElementById("debtCharts");
+    if (debtCharts) debtCharts.innerHTML = "";
+    var filters = document.querySelector(".filters");
+    if (filters) filters.parentNode.replaceChild(filters.cloneNode(true), filters);
+    var pager = document.querySelector(".pager");
+    if (pager) pager.parentNode.replaceChild(pager.cloneNode(true), pager);
+    txState = { search: "", month: "", category: "", currency: "", page: 0, pageSize: 50 };
+  }
+
+  function renderAll(data) {
+    DATA = data;
+    clearAll();
+    renderKPIs();
+    renderFlowChart();
+    renderBalanceCharts();
+    renderCategoryChart();
+    renderItemChart();
+    renderAccountsTable();
+    renderTxControls();
+    renderTxTable();
+    renderLastUpdated();
+    renderDebtSection();
+  }
+
+  window.renderGolapDashboard = renderAll;
+  renderAll(DATA);
+})();
+
+</script>
+<script>
+(function () {
+  var pill = document.getElementById("lastUpdatedPill");
+  var refreshBtn = document.getElementById("refreshBtn");
+  if (typeof fetchGolapLive !== "function") return;
+  function attempt(timeoutMs) { return fetchGolapLive(timeoutMs); }
+
+  function doRefresh(isManual) {
+    if (refreshBtn) refreshBtn.disabled = true;
+    if (isManual && pill) pill.textContent = "ກຳລັງອັບເດດ...";
+    attempt(15000).catch(function () {
+      return new Promise(function (resolve) { setTimeout(resolve, 1000); }).then(function () { return attempt(20000); });
+    }).then(function (liveData) {
+      window.renderGolapDashboard(liveData);
+      if (pill) pill.textContent = "ອັບເດດສົດ " + new Date().toLocaleString("lo-LA", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
+      if (refreshBtn) refreshBtn.disabled = false;
+    }).catch(function () {
+      if (pill) pill.textContent = "ຂໍ້ມູນຊຸດຫຼ້າສຸດ (offline, ບໍ່ໄດ້ເຊື່ອມ Google Sheet)";
+      if (refreshBtn) refreshBtn.disabled = false;
+    });
+  }
+
+  if (refreshBtn) refreshBtn.addEventListener("click", function () { doRefresh(true); });
+  doRefresh(false);
+  setInterval(function () { doRefresh(false); }, 3 * 60 * 1000);
+})();
+</script>
