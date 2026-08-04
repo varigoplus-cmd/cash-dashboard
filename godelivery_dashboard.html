@@ -1,0 +1,1158 @@
+<meta charset="utf-8">
+<title>ຍອດເງິນສົດ Go Delivery</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f4f3ef;
+    --surface: #ffffff;
+    --surface-2: #ebe9e3;
+    --ink: #14171a;
+    --ink-2: #565b57;
+    --ink-muted: #8b8f86;
+    --border: rgba(20,23,26,0.10);
+    --border-strong: rgba(20,23,26,0.16);
+    --accent: #0e7a63;
+    --accent-ink: #ffffff;
+    --accent-soft: #e1f1eb;
+    --gold: #a86a00;
+    --gold-soft: #f6ecd9;
+    --good: #0ca30c;
+    --critical: #d03b3b;
+    --warning: #b3760f;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100;
+    --s5: #e87ba4; --s6: #008300; --s7: #4a3aa7; --s8: #e34948;
+    --shadow: 0 1px 2px rgba(20,23,26,0.06), 0 8px 24px -12px rgba(20,23,26,0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #0e1110;
+      --surface: #171a18;
+      --surface-2: #1f2321;
+      --ink: #f4f4f2;
+      --ink-2: #c2c5bf;
+      --ink-muted: #85897f;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.16);
+      --accent: #1f9e82;
+      --accent-ink: #05130f;
+      --accent-soft: rgba(31,158,130,0.16);
+      --gold: #d69f2b;
+      --gold-soft: rgba(214,159,43,0.14);
+      --good: #21b321;
+      --critical: #e66767;
+      --warning: #d69f2b;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+      --s5: #d55181; --s6: #21b321; --s7: #9085e9; --s8: #e66767;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1110;
+    --surface: #171a18;
+    --surface-2: #1f2321;
+    --ink: #f4f4f2;
+    --ink-2: #c2c5bf;
+    --ink-muted: #85897f;
+    --border: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.16);
+    --accent: #1f9e82;
+    --accent-ink: #05130f;
+    --accent-soft: rgba(31,158,130,0.16);
+    --gold: #d69f2b;
+    --gold-soft: rgba(214,159,43,0.14);
+    --good: #21b321;
+    --critical: #e66767;
+    --warning: #d69f2b;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500;
+    --s5: #d55181; --s6: #21b321; --s7: #9085e9; --s8: #e66767;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans Lao Looped", "Noto Sans Lao", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 28px 20px 80px; }
+  a { color: inherit; }
+
+  /* ---- header ---- */
+  .page-head {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    align-items: flex-end; justify-content: space-between;
+    margin-bottom: 24px; padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: linear-gradient(155deg, var(--accent), #0a5545);
+    color: var(--accent-ink);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 17px; letter-spacing: -0.02em;
+    flex: none;
+  }
+  h1 { font-size: 22px; font-weight: 800; margin: 0 0 2px; letter-spacing: -0.01em; }
+  .page-head .meta { color: var(--ink-2); font-size: 13px; }
+  .head-right { text-align: right; color: var(--ink-muted); font-size: 12px; }
+  .head-right .updated-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-soft); color: var(--accent);
+    border-radius: 999px; padding: 5px 12px; font-size: 12px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .updated-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .refresh-btn {
+    font-family: inherit; font-size: 13px; line-height: 1; color: inherit;
+    background: transparent; border: none; cursor: pointer; padding: 0 0 0 4px;
+    opacity: 0.75;
+  }
+  .refresh-btn:hover:not(:disabled) { opacity: 1; }
+  .refresh-btn:disabled { opacity: 0.35; cursor: default; animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- kpi grid ---- */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px; margin-bottom: 28px;
+  }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi.lead { background: linear-gradient(155deg, var(--accent), #0a5545); color: var(--accent-ink); border: none; }
+  .kpi.lead .kpi-label, .kpi.lead .kpi-sub { color: rgba(255,255,255,0.78); }
+  :root[data-theme="light"] .kpi.lead, :root:not([data-theme="dark"]) .kpi.lead { color: #ffffff; }
+  .kpi-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); }
+  .kpi-value { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .kpi-sub { font-size: 12px; color: var(--ink-2); }
+  .kpi-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; width: fit-content; }
+  .kpi-delta.up { color: var(--good); }
+  .kpi-delta.down { color: var(--critical); }
+
+  /* ---- section ---- */
+  .section { margin-bottom: 28px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .section-title { font-size: 15px; font-weight: 800; letter-spacing: -0.005em; }
+  .section-note { font-size: 12px; color: var(--ink-muted); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 860px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ---- legend ---- */
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin-top: 10px; }
+  .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+  /* ---- chart chrome ---- */
+  svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+  .grid-line { stroke: var(--border); stroke-width: 1; }
+  .axis-label { fill: var(--ink-muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+  .month-label { fill: var(--ink-2); font-size: 11px; font-weight: 600; }
+  .bar-value { fill: var(--ink); font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .net-good { fill: var(--good); }
+  .net-bad { fill: var(--critical); }
+  .hover-guide { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; pointer-events: none; }
+  .hover-dot { opacity: 0; pointer-events: none; }
+
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 30;
+    background: var(--ink); color: var(--bg);
+    border-radius: 8px; padding: 8px 10px; font-size: 11.5px; line-height: 1.45;
+    box-shadow: var(--shadow); opacity: 0; transform: translate(-50%, -100%);
+    transition: opacity .08s ease; white-space: nowrap;
+  }
+  :root[data-theme="dark"] .tooltip, @media (prefers-color-scheme: dark) { }
+  .tt-title { font-weight: 800; margin-bottom: 2px; }
+  .tt-row { display: flex; gap: 10px; justify-content: space-between; }
+  .tt-row .k { color: var(--ink-muted); }
+
+  .chart-wrap { position: relative; }
+
+  /* ---- hbar rows ---- */
+  .hbar-row { display: grid; grid-template-columns: 168px 1fr 96px; align-items: center; gap: 10px; padding: 7px 0; }
+  .hbar-row + .hbar-row { border-top: 1px solid var(--border); }
+  .hbar-label { font-size: 12.5px; color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hbar-track { position: relative; height: 10px; background: var(--surface-2); border-radius: 5px; overflow: hidden; }
+  .hbar-fill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; }
+  .hbar-value { font-size: 12.5px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .hbar-count { font-size: 11px; color: var(--ink-muted); }
+
+  /* ---- accounts table ---- */
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  thead th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--ink-muted); font-weight: 700; padding: 0 10px 8px; border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  tbody td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: top; font-variant-numeric: tabular-nums; }
+  tbody tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-scroll { overflow-x: auto; }
+  .cur-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10.5px; font-weight: 800; padding: 2px 7px; border-radius: 6px;
+    background: var(--surface-2); color: var(--ink-2);
+  }
+  .cur-badge.LAK { background: var(--accent-soft); color: var(--accent); }
+  .cur-badge.USD { background: var(--gold-soft); color: var(--gold); }
+  .cur-badge.THB { background: rgba(74,58,167,0.12); color: var(--s7); }
+
+  /* ---- filters ---- */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .filters input[type="search"], .filters select {
+    font-family: inherit; font-size: 12.5px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--border-strong); border-radius: 9px;
+    padding: 8px 10px; outline: none;
+  }
+  .filters input[type="search"] { flex: 1 1 220px; min-width: 160px; }
+  .filters input[type="search"]:focus, .filters select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .pill-group { display: inline-flex; gap: 4px; background: var(--surface-2); padding: 3px; border-radius: 9px; }
+  .pill {
+    font-family: inherit; font-size: 12px; font-weight: 700; color: var(--ink-2);
+    background: transparent; border: none; border-radius: 7px; padding: 6px 11px; cursor: pointer;
+  }
+  .pill:hover { color: var(--ink); }
+  .pill[aria-pressed="true"] { background: var(--surface); color: var(--accent); box-shadow: var(--shadow); }
+  .pill:focus-visible, .page-btn:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .result-count { font-size: 12px; color: var(--ink-muted); margin-inline-start: auto; }
+
+  .desc-cell { max-width: 320px; }
+  .desc-main { color: var(--ink); }
+  .desc-sub { color: var(--ink-muted); font-size: 11px; margin-top: 2px; }
+  .cat-tag { font-size: 10.5px; color: var(--ink-2); background: var(--surface-2); padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+
+  .pager { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; }
+  .page-btn {
+    font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 13px; cursor: pointer;
+  }
+  .page-btn:disabled { opacity: 0.4; cursor: default; }
+  .page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .page-status { font-size: 12px; color: var(--ink-muted); }
+
+  footer { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--border); color: var(--ink-muted); font-size: 11.5px; line-height: 1.7; }
+  footer b { color: var(--ink-2); }
+
+  .empty-state { text-align: center; padding: 30px 10px; color: var(--ink-muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+
+  <div class="page-head">
+    <div class="brand">
+      <div class="brand-mark">GD</div>
+      <div>
+        <h1>ຍອດເງິນສົດ Go Delivery</h1>
+        <div class="meta">VARIGO PLUS CO., LTD · ບັນຊີທະນາຄານ BCEL · ພຶດສະພາ – ສິງຫາ 2026</div>
+      </div>
+    </div>
+    <div class="head-right">
+      <div class="updated-pill"><span class="dot"></span><span id="liveStatusText">ກຳລັງດຶງຂໍ້ມູນລ່າສຸດ...</span><button id="refreshBtn" class="refresh-btn" title="ອັບເດດຂໍ້ມູນເທື່ອນີ້" type="button">⟳</button></div>
+      <div id="liveSourceLine">ອີງຕາມ Google Sheet: Cash Balance Godelivery</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">ກະແສເງິນສົດ LAK ຮັບ‑ຈ່າຍ ຕໍ່ເດືອນ</div>
+      <div class="section-note">ໂຕເລກເທິງແທ່ງ = ຍອດສຸດທິຂອງເດືອນນັ້ນ (ຮັບ − ຈ່າຍ)</div>
+    </div>
+    <div class="card">
+      <div class="chart-wrap" id="flowChart"></div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--s1)"></span>ຮັບເຂົ້າ</span>
+        <span class="legend-item"><span class="legend-swatch" style="background:var(--s8)"></span>ຈ່າຍອອກ</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">ຍອດເງິນຄົງເຫຼືອທ້າຍເດືອນ</div>
+      <div class="section-note">ແຍກຕາມສະກຸນເງິນ (ຄົນລະຂະໜາດ ຈຶ່ງແຍກກຣາຟ)</div>
+    </div>
+    <div class="grid-3" id="balanceCharts"></div>
+  </div>
+
+  <div class="section">
+    <div class="grid-2">
+      <div>
+        <div class="section-head"><div class="section-title">ຄ່າໃຊ້ຈ່າຍຕາມໝວດໝູ່ (LAK)</div></div>
+        <div class="card" id="categoryChart"></div>
+      </div>
+      <div>
+        <div class="section-head"><div class="section-title">ຜູ້ຮັບເງິນສູງສຸດ 10 ອັນດັບ</div></div>
+        <div class="card" id="supplierChart"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">ບັນຊີທະນາຄານ</div></div>
+    <div class="card table-scroll">
+      <table id="accountsTable"></table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">ລາຍການທຸລະກຳທັງໝົດ</div>
+      <div class="section-note" id="txSectionNote"></div>
+    </div>
+    <div class="card">
+      <div class="filters">
+        <input type="search" id="txSearch" placeholder="ຄົ້ນຫາ: ຜູ້ຂາຍ, ລາຍລະອຽດ, ເລກ PV/CR..." />
+        <select id="txMonth"><option value="">ທຸກເດືອນ</option></select>
+        <select id="txCategory"><option value="">ທຸກໝວດ</option></select>
+        <div class="pill-group" id="txCurrencyPills">
+          <button class="pill" data-cur="" aria-pressed="true">ທັງໝົດ</button>
+          <button class="pill" data-cur="LAK" aria-pressed="false">LAK</button>
+          <button class="pill" data-cur="THB" aria-pressed="false">THB</button>
+          <button class="pill" data-cur="USD" aria-pressed="false">USD</button>
+        </div>
+        <span class="result-count" id="txResultCount"></span>
+      </div>
+      <div class="table-scroll">
+        <table id="txTable">
+          <thead>
+            <tr>
+              <th>ວັນທີ</th><th>ຜູ້ຂາຍ/ຜູ້ຮັບ</th><th>ລາຍລະອຽດ</th><th>ເລກທີ</th>
+              <th class="num">ຮັບເຂົ້າ</th><th class="num">ຈ່າຍອອກ</th><th>ສະກຸນ</th>
+            </tr>
+          </thead>
+          <tbody id="txBody"></tbody>
+        </table>
+      </div>
+      <div id="txEmpty" class="empty-state" style="display:none;">ບໍ່ພົບລາຍການທີ່ຄົ້ນຫາ</div>
+      <div class="pager">
+        <button class="page-btn" id="txPrev">← ກ່ອນໜ້າ</button>
+        <span class="page-status" id="txPageStatus"></span>
+        <button class="page-btn" id="txNext">ຖັດໄປ →</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div><b>ແຫຼ່ງຂໍ້ມູນ:</b> Google Sheet "Cash Balance Godelivery" (ຊີດ ພ.ພ–ສ.ຫ 2026 ແລະ Summary), ດຶງອອກ ແລະ ຄິດໄລ່ຄືນໃໝ່ 100% ໂດຍກົງຈາກຊີດຕົ້ນສະບັບ.</div>
+    <div><b>ໝາຍເຫດ:</b> ໝວດ "ອື່ນໆ" ໃນກຣາຟຄ່າໃຊ້ຈ່າຍ ແມ່ນລາຍການທີ່ຈັດປະເພດອັດຕະໂນມັດຈາກຄຳອະທິບາຍລາຍການ ອາດຄາດເຄື່ອນໄດ້ໜ້ອຍໜຶ່ງ. ຍອດຄົງເຫຼືອບາງເດືອນອີງໃສ່ແຖວສຸດທ້າຍທີ່ບັນທຶກໄວ້ໃນຊີດຕົ້ນສະບັບ.</div>
+    <div>Dashboard ນີ້ດຶງຂໍ້ມູນສົດຈາກ Google Sheet ທຸກຄັ້ງທີ່ເປີດ (ຕ້ອງມີອິນເຕີເນັດ) — ອັບເດດ Sheet ແລ້ວເປີດໄຟລ໌ນີ້ຄືນ ຈະເຫັນຂໍ້ມູນໃໝ່ທັນທີ ບໍ່ຕ້ອງຮັບໄຟລ໌ໃໝ່. ຖ້າບໍ່ມີອິນເຕີເນັດ ຈະສະແດງຂໍ້ມູນຊຸດຫຼ້າສຸດທີ່ບັນທຶກໄວ້ໃນໄຟລ໌ແທນ.</div>
+  </footer>
+
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script id="dashboard-data" type="application/json">{
+  "months": [
+    {"month": "May 2026", "opening": {"LAK": 0, "THB": 0, "USD": 0}, "closing": {"LAK": 0, "THB": 0, "USD": 0}, "totals": {"LAK": {"in": 0, "out": 0}, "THB": {"in": 0, "out": 0}, "USD": {"in": 0, "out": 0}}, "tx_count": 0},
+    {"month": "Jun 2026", "opening": {"LAK": 0, "THB": 0, "USD": 0}, "closing": {"LAK": 0, "THB": 0, "USD": 0}, "totals": {"LAK": {"in": 0, "out": 0}, "THB": {"in": 0, "out": 0}, "USD": {"in": 0, "out": 0}}, "tx_count": 0}
+  ],
+  "summary_accounts": [
+    {"bank_code": "-", "company": "-", "account_type": "-", "bank_account_number": "-", "currency": "LAK", "transaction_currency_balance": 0, "reserve_amount": 0, "available_balance": 0, "rate": 1, "total_lak_equivalent": 0},
+    {"bank_code": "-", "company": "-", "account_type": "-", "bank_account_number": "-", "currency": "THB", "transaction_currency_balance": 0, "reserve_amount": 0, "available_balance": 0, "rate": 1, "total_lak_equivalent": 0},
+    {"bank_code": "-", "company": "-", "account_type": "-", "bank_account_number": "-", "currency": "USD", "transaction_currency_balance": 0, "reserve_amount": 0, "available_balance": 0, "rate": 1, "total_lak_equivalent": 0}
+  ],
+  "top_suppliers": [],
+  "categories": [],
+  "overall": {"total_tx": 0, "first_month_opening": {"LAK": 0, "THB": 0, "USD": 0}, "last_month_closing": {"LAK": 0, "THB": 0, "USD": 0}},
+  "transactions": []
+}
+</script>
+<script>
+(function (global) {
+  "use strict";
+
+  function parseCSV(text) {
+    var rows = [];
+    var row = [];
+    var field = "";
+    var inQuotes = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (text[i + 1] === '"') { field += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          field += c;
+        }
+      } else {
+        if (c === '"') inQuotes = true;
+        else if (c === ",") { row.push(field); field = ""; }
+        else if (c === "\r") { /* skip */ }
+        else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+        else field += c;
+      }
+    }
+    if (field.length || row.length) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  function parseNum(v) {
+    if (v === null || v === undefined) return null;
+    var s = String(v).trim();
+    if (s === "") return null;
+    s = s.replace(/[₭฿$,]/g, "").trim();
+    if (s === "") return null;
+    var n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+
+  function round2(v) {
+    return typeof v === "number" ? Math.round(v * 100) / 100 : v;
+  }
+
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+  var MON_NAMES = {
+    jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+    jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
+  };
+
+  // "1-Jan-26" / "31-Jul-26" -> "2026-01-01"
+  function parseDateDMonY(s) {
+    if (!s) return null;
+    var m = /^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/.exec(String(s).trim());
+    if (!m) return null;
+    var day = parseInt(m[1], 10);
+    var mon = MON_NAMES[m[2].toLowerCase()];
+    if (!mon) return null;
+    var year = m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10);
+    return year + "-" + pad2(mon) + "-" + pad2(day);
+  }
+
+  // "25/3/26" / "1/8/26" -> "2026-03-25"
+  function parseDateDMY(s) {
+    if (!s) return null;
+    var m = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/.exec(String(s).trim());
+    if (!m) return null;
+    var day = parseInt(m[1], 10);
+    var mon = parseInt(m[2], 10);
+    var year = m[3].length === 2 ? 2000 + parseInt(m[3], 10) : parseInt(m[3], 10);
+    return year + "-" + pad2(mon) + "-" + pad2(day);
+  }
+
+  function gvizCsvUrl(sheetId, tabName) {
+    return "https://docs.google.com/spreadsheets/d/" + sheetId +
+      "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(tabName) + "&_=" + Date.now();
+  }
+
+  function fetchTabCSV(sheetId, tabName, timeoutMs) {
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var timer = null;
+    if (ctrl && timeoutMs) {
+      timer = setTimeout(function () { ctrl.abort(); }, timeoutMs);
+    }
+    var opts = { cache: "no-store" };
+    if (ctrl) opts.signal = ctrl.signal;
+    return fetch(gvizCsvUrl(sheetId, tabName), opts)
+      .then(function (r) {
+        if (timer) clearTimeout(timer);
+        if (!r.ok) throw new Error("HTTP " + r.status + " for tab " + tabName);
+        return r.text();
+      })
+      .then(function (text) { return parseCSV(text); })
+      .catch(function (e) {
+        if (timer) clearTimeout(timer);
+        throw e;
+      });
+  }
+
+  global.CsvUtil = {
+    parseCSV: parseCSV,
+    parseNum: parseNum,
+    round2: round2,
+    pad2: pad2,
+    parseDateDMonY: parseDateDMonY,
+    parseDateDMY: parseDateDMY,
+    gvizCsvUrl: gvizCsvUrl,
+    fetchTabCSV: fetchTabCSV
+  };
+})(window);
+
+</script>
+<script>
+(function (global) {
+  "use strict";
+  var U = global.CsvUtil;
+
+  var SHEET_ID = "1IaPoh5meTjlQTjdU7mrAXphZPgJBG6th";
+  var MONTHS = [" May 2026", "Jun 2026", "Jul 2026", "Aug 2026"];
+  var CUR_MAP = { LAK: [5, 6, 7], THB: [8, 9, 10], USD: [11, 12, 13] };
+  // columns (0-indexed): 1=supplier, 2=pv, 3=date, 4=desc
+
+  function categorize(desc) {
+    if (!desc) return "ອື່ນໆ";
+    var d = desc;
+    if (d.indexOf("ເງິນເດືອນ") !== -1 || d.indexOf("ຄ່າແຮງງານ") !== -1 || d.indexOf("ຄ່າຈ້າງ") !== -1) return "ຄ່າແຮງງານ/ເງິນເດືອນ";
+    if (d.indexOf("ໄຟຟ້າ") !== -1 || d.indexOf("ນ້ຳປະປາ") !== -1 || d.indexOf("ນໍ້າປະປາ") !== -1 || d.indexOf("ຂີ້ເຫຍື້ອ") !== -1) return "ຄ່ານ້ຳ-ໄຟ-ຂີ້ເຫຍື້ອ";
+    if (d.indexOf("ເບີກເງິນແຮ") !== -1 || d.indexOf("ເປີກເງີນແຮ") !== -1 || d.indexOf("ເບີີກເງິນສົດ") !== -1) return "ເບີກເງິນລ່ວງໜ້າ/ເງິນສົດຍ່ອຍ";
+    if (d.indexOf("ສິນຄ້າ") !== -1 || d.indexOf("ສີນຄ້າ") !== -1) return "ຊື້ສິນຄ້າ/ເບີກສິນຄ້າ";
+    if (d.indexOf("ຄ່າທຳນຽມ") !== -1 || d.indexOf("ຄ່າທໍານຽມ") !== -1 || d.toUpperCase().indexOf("CHARGE FEE") !== -1) return "ຄ່າທຳນຽມທະນາຄານ";
+    if (d.indexOf("ແລກເງິນ") !== -1 || (d.indexOf("ໄດ້ຮັັບເງິນຈາກ") !== -1 && d.indexOf("ແລກ") !== -1)) return "ແລກປ່ຽນສະກຸນເງິນ";
+    if (d.indexOf("Delivery") !== -1 || d.indexOf("OnePay") !== -1 || d.indexOf("ໄດ້ຮັບເງິນຈາກ") !== -1 || d.indexOf("ຮັບເງີນຈາກ") !== -1) return "ລາຍຮັບຈາກການຂາຍ";
+    if (d.indexOf("ມອບເງິນເຂົ້າທະນາຄານ") !== -1) return "ຝາກເງິນເຂົ້າທະນາຄານ";
+    if (d.indexOf("ໂຄສະນາ") !== -1 || d.indexOf("ການຕະຫຼາດ") !== -1 || d.indexOf("ແອ້ດ") !== -1) return "ການຕະຫຼາດ";
+    return "ອື່ນໆ";
+  }
+
+  function buildMonth(mname, rows) {
+    var openRow = rows[1] || [];
+    var opening = {
+      LAK: U.parseNum(openRow[CUR_MAP.LAK[2]]),
+      THB: U.parseNum(openRow[CUR_MAP.THB[2]]),
+      USD: U.parseNum(openRow[CUR_MAP.USD[2]])
+    };
+    var closing = { LAK: opening.LAK, THB: opening.THB, USD: opening.USD };
+    var totals = { LAK: { in: 0, out: 0 }, THB: { in: 0, out: 0 }, USD: { in: 0, out: 0 } };
+    var txCount = 0;
+    var lastDateStr = null;
+    var tx = [];
+
+    for (var r = 2; r < rows.length; r++) {
+      var row = rows[r];
+      var dateRaw = (row[3] || "").trim();
+      var desc = (row[4] || "").trim();
+      var dateParsed = dateRaw ? U.parseDateDMonY(dateRaw) : null;
+      if (!dateParsed && !desc) break;
+      var dateStr;
+      if (dateParsed) { dateStr = dateParsed; lastDateStr = dateParsed; }
+      else dateStr = lastDateStr;
+
+      var supplier = (row[1] || "").trim() || null;
+      var pv = (row[2] || "").trim() || null;
+      var rowHasTx = false;
+
+      ["LAK", "THB", "USD"].forEach(function (cur) {
+        var cm = CUR_MAP[cur];
+        var vin = U.parseNum(row[cm[0]]), vout = U.parseNum(row[cm[1]]), vbal = U.parseNum(row[cm[2]]);
+        if (vbal !== null) closing[cur] = vbal;
+        if ((vin !== null && vin !== 0) || (vout !== null && vout !== 0)) {
+          rowHasTx = true;
+          totals[cur].in += vin || 0;
+          totals[cur].out += vout || 0;
+          tx.push({
+            month: mname, date: dateStr, supplier: supplier, pv: pv, desc: desc || null,
+            currency: cur, in: U.round2(vin || 0), out: U.round2(vout || 0),
+            category: (vout && vout !== 0) ? categorize(desc) : null
+          });
+        }
+      });
+      if (rowHasTx) txCount++;
+    }
+
+    return { month: mname, opening: opening, closing: closing, totals: totals, tx_count: txCount, tx: tx };
+  }
+
+  function buildSummary(rows) {
+    var out = [];
+    for (var r = 1; r < rows.length; r++) {
+      var row = rows[r];
+      if (!row || !row[1]) continue;
+      out.push({
+        bank_code: row[1], company: row[2], account_type: row[3],
+        bank_account_number: row[4], currency: row[5],
+        transaction_currency_balance: U.parseNum(row[6]), reserve_amount: U.parseNum(row[7]),
+        available_balance: U.parseNum(row[8]), rate: U.parseNum(row[9]),
+        total_lak_equivalent: U.parseNum(row[10])
+      });
+    }
+    return out;
+  }
+
+  function fetchGodeliveryLive(timeoutMs) {
+    var tabPromises = MONTHS.map(function (m) { return U.fetchTabCSV(SHEET_ID, m, timeoutMs); });
+    tabPromises.push(U.fetchTabCSV(SHEET_ID, "Summary", timeoutMs));
+
+    return Promise.all(tabPromises).then(function (results) {
+      var monthResults = results.slice(0, MONTHS.length);
+      var summaryRows = results[results.length - 1];
+
+      var months = [];
+      var allTx = [];
+      MONTHS.forEach(function (mname, i) {
+        var built = buildMonth(mname.trim(), monthResults[i]);
+        if (built.opening.LAK === null && months.length) {
+          built.opening = JSON.parse(JSON.stringify(months[months.length - 1].closing));
+        }
+        months.push({ month: built.month, opening: built.opening, closing: built.closing, totals: built.totals, tx_count: built.tx_count });
+        allTx = allTx.concat(built.tx);
+      });
+
+      var supplierPaid = {}, supplierTxCount = {};
+      allTx.forEach(function (t) {
+        if (t.currency === "LAK" && t.out) {
+          var key = t.supplier || "(ບໍ່ລະບຸ)";
+          supplierPaid[key] = (supplierPaid[key] || 0) + t.out;
+          supplierTxCount[key] = (supplierTxCount[key] || 0) + 1;
+        }
+      });
+      var topSuppliers = Object.keys(supplierPaid)
+        .map(function (k) { return { supplier: k, total_paid: supplierPaid[k], tx_count: supplierTxCount[k] }; })
+        .sort(function (a, b) { return b.total_paid - a.total_paid; })
+        .slice(0, 15);
+
+      var catTotals = {};
+      allTx.forEach(function (t) {
+        if (t.currency === "LAK" && t.out) {
+          var c = categorize(t.desc);
+          catTotals[c] = (catTotals[c] || 0) + t.out;
+        }
+      });
+      var categories = Object.keys(catTotals)
+        .map(function (k) { return { category: k, total: catTotals[k] }; })
+        .sort(function (a, b) { return b.total - a.total; });
+
+      var transactions = allTx.map(function (t) {
+        return { month: t.month, date: t.date, supplier: t.supplier, pv: t.pv, desc: t.desc, currency: t.currency, in: t.in, out: t.out, category: t.category };
+      });
+
+      return {
+        months: months,
+        summary_accounts: buildSummary(summaryRows),
+        top_suppliers: topSuppliers,
+        categories: categories,
+        overall: {
+          total_tx: allTx.length,
+          first_month_opening: months[0].opening,
+          last_month_closing: months[months.length - 1].closing
+        },
+        transactions: transactions
+      };
+    });
+  }
+
+  global.fetchGodeliveryLive = fetchGodeliveryLive;
+})(window);
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("dashboard-data").textContent);
+  var MONTH_LABEL = {
+    "Jan 2026": "ມ.ກ", "Feb 2026": "ກ.ພ", "Mar 2026": "ມີ.ນ", "Apr 2026": "ເມ.ສ",
+    "May 2026": "ພ.ພ", "Jun 2026": "ມິ.ຖ", "Jul 2026": "ກ.ລ", "JUl 2026": "ກ.ລ", "Aug 2026": "ສ.ຫ"
+  };
+  var CAT_COLOR = {
+    "ຊື້ສິນຄ້າ/ເບີກສິນຄ້າ": "var(--s1)",
+    "ອື່ນໆ": "var(--ink-muted)",
+    "ຄ່າແຮງງານ/ເງິນເດືອນ": "var(--s3)",
+    "ຄ່ານ້ຳ-ໄຟ-ຂີ້ເຫຍື້ອ": "var(--s4)",
+    "ເບີກເງິນລ່ວງໜ້າ/ເງິນສົດຍ່ອຍ": "var(--s7)",
+    "ການຕະຫຼາດ": "var(--s5)",
+    "ຄ່າທຳນຽມທະນາຄານ": "var(--s2)"
+  };
+  var CUR_DECIMALS = { LAK: 0, THB: 2, USD: 2 };
+  var CUR_SYMBOL = { LAK: "₭", THB: "฿", USD: "$" };
+
+  function fmt(v, decimals) {
+    if (v === null || v === undefined || isNaN(v)) return "-";
+    return v.toLocaleString("en-US", { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals || 0 });
+  }
+  function fmtCur(v, cur) { return fmt(v, CUR_DECIMALS[cur] !== undefined ? CUR_DECIMALS[cur] : 2); }
+  function fmtCompact(v) {
+    var sign = v < 0 ? "-" : "";
+    var a = Math.abs(v);
+    if (a >= 1e6) return sign + (a / 1e6).toFixed(1) + "M";
+    if (a >= 1e3) return sign + (a / 1e3).toFixed(0) + "K";
+    return sign + a.toFixed(0);
+  }
+  function el(tag, cls, html) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html !== undefined) e.innerHTML = html;
+    return e;
+  }
+  function svgEl(name, attrs) {
+    var e = document.createElementNS("http://www.w3.org/2000/svg", name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  var tooltip = document.getElementById("tooltip");
+  function showTooltip(x, y, html) {
+    tooltip.innerHTML = html;
+    tooltip.style.left = x + "px";
+    tooltip.style.top = (y - 10) + "px";
+    tooltip.style.opacity = "1";
+  }
+  function hideTooltip() { tooltip.style.opacity = "0"; }
+
+  // ---------------------------------------------------------------- KPIs
+  function renderKPIs() {
+    var grid = document.getElementById("kpiGrid");
+    var acc = {};
+    DATA.summary_accounts.forEach(function (a) { acc[a.currency] = a; });
+    var totalLak = DATA.summary_accounts.reduce(function (s, a) { return s + a.total_lak_equivalent; }, 0);
+    var firstOpen = DATA.months[0].opening.LAK;
+    var lastClose = DATA.months[DATA.months.length - 1].closing.LAK;
+    var delta = lastClose - firstOpen;
+    var deltaPct = firstOpen ? (delta / firstOpen) * 100 : 0;
+    var curList = DATA.summary_accounts.map(function (a) { return a.currency; });
+    var firstMonthLbl = MONTH_LABEL[DATA.months[0].month] || DATA.months[0].month;
+    var lastMonthLbl = MONTH_LABEL[DATA.months[DATA.months.length - 1].month] || DATA.months[DATA.months.length - 1].month;
+
+    var cards = [
+      {
+        lead: true,
+        label: "ຍອດເງິນທີ່ໃຊ້ໄດ້ລວມ (ທຽບເທົ່າກີບ)",
+        value: "₭" + fmt(totalLak, 0),
+        sub: "ຈາກ " + DATA.summary_accounts.length + " ບັນຊີທະນາຄານ (" + curList.join(" · ") + ")"
+      }
+    ];
+    if (acc.LAK) {
+      cards.push({
+        label: "ບັນຊີ LAK",
+        value: "₭" + fmt(acc.LAK.transaction_currency_balance, 0),
+        sub: "ສຳຮອງ ₭" + fmt(acc.LAK.reserve_amount, 0) + " · ໃຊ້ໄດ້ ₭" + fmt(acc.LAK.available_balance, 0)
+      });
+    }
+    if (acc.USD) {
+      cards.push({
+        label: "ບັນຊີ USD",
+        value: "$" + fmt(acc.USD.transaction_currency_balance, 2),
+        sub: "≈ ₭" + fmt(acc.USD.total_lak_equivalent, 0) + " · ອັດຕາ " + fmt(acc.USD.rate, 0)
+      });
+    }
+    if (acc.THB) {
+      cards.push({
+        label: "ບັນຊີ THB",
+        value: "฿" + fmt(acc.THB.transaction_currency_balance, 2),
+        sub: "≈ ₭" + fmt(acc.THB.total_lak_equivalent, 0) + " · ອັດຕາ " + fmt(acc.THB.rate, 2)
+      });
+    }
+    cards.push({
+      label: "ຈຳນວນທຸລະກຳ (" + DATA.months.length + " ເດືອນ)",
+      value: fmt(DATA.overall.total_tx, 0),
+      sub: fmt(Math.round(DATA.overall.total_tx / DATA.months.length), 0) + " ລາຍການ/ເດືອນ ໂດຍສະເລ່ຍ"
+    });
+    cards.push({
+      label: "ການປ່ຽນແປງ LAK (" + firstMonthLbl + " → " + lastMonthLbl + ")",
+      value: (delta >= 0 ? "+" : "") + "₭" + fmt(delta, 0),
+      sub: "",
+      delta: deltaPct
+    });
+
+    cards.forEach(function (c) {
+      var card = el("div", "kpi" + (c.lead ? " lead" : ""));
+      card.appendChild(el("div", "kpi-label", c.label));
+      card.appendChild(el("div", "kpi-value", c.value));
+      if (c.delta !== undefined) {
+        var d = el("div", "kpi-delta " + (c.delta >= 0 ? "up" : "down"),
+          (c.delta >= 0 ? "▲ " : "▼ ") + Math.abs(c.delta).toFixed(1) + "%");
+        card.appendChild(d);
+      } else if (c.sub) {
+        card.appendChild(el("div", "kpi-sub", c.sub));
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------------------------------------------------------- flow chart
+  function renderFlowChart() {
+    var host = document.getElementById("flowChart");
+    var W = 960, H = 300, ML = 54, MR = 10, MT = 30, MB = 34;
+    var plotW = W - ML - MR, plotH = H - MT - MB;
+    var months = DATA.months;
+    var n = months.length;
+    var maxV = 0;
+    months.forEach(function (m) {
+      maxV = Math.max(maxV, m.totals.LAK.in, m.totals.LAK.out);
+    });
+    maxV = Math.ceil(maxV / 1e8) * 1e8; // round to nearest 100M
+    if (maxV === 0) maxV = 1e8;
+
+    var svg = svgEl("svg", { class: "chart", viewBox: "0 0 " + W + " " + H });
+    var groupW = plotW / n;
+    var barW = groupW * 0.30;
+    var gap = groupW * 0.06;
+
+    // gridlines + axis labels
+    var ticks = 4;
+    for (var t = 0; t <= ticks; t++) {
+      var val = (maxV / ticks) * t;
+      var y = MT + plotH - (val / maxV) * plotH;
+      svg.appendChild(svgEl("line", { class: "grid-line", x1: ML, x2: W - MR, y1: y, y2: y }));
+      var lbl = svgEl("text", { class: "axis-label", x: ML - 8, y: y + 3, "text-anchor": "end" });
+      lbl.textContent = t === 0 ? "0" : fmtCompact(val);
+      svg.appendChild(lbl);
+    }
+
+    months.forEach(function (m, i) {
+      var gx = ML + i * groupW;
+      var inV = m.totals.LAK.in, outV = m.totals.LAK.out;
+      var inH = (inV / maxV) * plotH, outH = (outV / maxV) * plotH;
+      var xIn = gx + groupW / 2 - gap / 2 - barW;
+      var xOut = gx + groupW / 2 + gap / 2;
+      var yIn = MT + plotH - inH, yOut = MT + plotH - outH;
+
+      var rIn = svgEl("rect", { x: xIn, y: yIn, width: barW, height: Math.max(inH, 1), rx: 3, fill: "var(--s1)" });
+      var rOut = svgEl("rect", { x: xOut, y: yOut, width: barW, height: Math.max(outH, 1), rx: 3, fill: "var(--s8)" });
+      svg.appendChild(rIn);
+      svg.appendChild(rOut);
+
+      var net = inV - outV;
+      var topY = Math.min(yIn, yOut) - 8;
+      var netLbl = svgEl("text", {
+        class: "bar-value " + (net >= 0 ? "net-good" : "net-bad"),
+        x: gx + groupW / 2, y: Math.max(topY, MT + 10), "text-anchor": "middle"
+      });
+      netLbl.textContent = (net >= 0 ? "+" : "") + fmtCompact(net);
+      svg.appendChild(netLbl);
+
+      var mLbl = svgEl("text", { class: "month-label", x: gx + groupW / 2, y: H - 10, "text-anchor": "middle" });
+      mLbl.textContent = MONTH_LABEL[m.month] || m.month;
+      svg.appendChild(mLbl);
+
+      // hover hit area
+      var hit = svgEl("rect", { x: gx, y: MT, width: groupW, height: plotH, fill: "transparent", style: "cursor:pointer" });
+      hit.addEventListener("mousemove", function (ev) {
+        var rect = host.getBoundingClientRect();
+        showTooltip(ev.clientX, rect.top + window.scrollY, "" +
+          "<div class='tt-title'>" + m.month.replace("JUl", "Jul") + "</div>" +
+          "<div class='tt-row'><span class='k'>ຮັບເຂົ້າ</span><span>₭" + fmt(inV, 0) + "</span></div>" +
+          "<div class='tt-row'><span class='k'>ຈ່າຍອອກ</span><span>₭" + fmt(outV, 0) + "</span></div>" +
+          "<div class='tt-row'><span class='k'>ສຸດທິ</span><span>" + (net >= 0 ? "+" : "") + "₭" + fmt(net, 0) + "</span></div>" +
+          "<div class='tt-row'><span class='k'>ທຸລະກຳ</span><span>" + m.tx_count + "</span></div>");
+      });
+      hit.addEventListener("mouseleave", hideTooltip);
+      svg.appendChild(hit);
+    });
+
+    host.appendChild(svg);
+  }
+
+  // ------------------------------------------------------- balance charts
+  function renderBalanceCharts() {
+    var host = document.getElementById("balanceCharts");
+    var series = [
+      { cur: "LAK", label: "ບັນຊີ LAK", color: "var(--accent)", fmtV: function (v) { return "₭" + fmtCompact(v); } },
+      { cur: "THB", label: "ບັນຊີ THB", color: "var(--s7)", fmtV: function (v) { return "฿" + fmt(v, 0); } },
+      { cur: "USD", label: "ບັນຊີ USD", color: "var(--gold)", fmtV: function (v) { return "$" + fmt(v, 0); } }
+    ];
+
+    series.forEach(function (s) {
+      var wrap = el("div", "card");
+      wrap.appendChild(el("div", "section-title", s.label));
+      var chartHost = el("div", "chart-wrap");
+      wrap.appendChild(chartHost);
+      host.appendChild(wrap);
+
+      var vals = DATA.months.map(function (m) { return m.closing[s.cur]; });
+      var W = 320, H = 170, ML = 8, MR = 8, MT = 16, MB = 24;
+      var plotW = W - ML - MR, plotH = H - MT - MB;
+      var minV = Math.min.apply(null, vals), maxV = Math.max.apply(null, vals);
+      if (minV === maxV) { minV -= 1; maxV += 1; }
+      var pad = (maxV - minV) * 0.15;
+      minV -= pad; maxV += pad;
+
+      var svg = svgEl("svg", { class: "chart", viewBox: "0 0 " + W + " " + H });
+      var n = vals.length;
+      function xAt(i) { return ML + (plotW * i) / (n - 1); }
+      function yAt(v) { return MT + plotH - ((v - minV) / (maxV - minV)) * plotH; }
+
+      // gridlines (2)
+      [0, 0.5, 1].forEach(function (f) {
+        var y = MT + plotH * f;
+        svg.appendChild(svgEl("line", { class: "grid-line", x1: ML, x2: W - MR, y1: y, y2: y }));
+      });
+
+      var pathD = vals.map(function (v, i) { return (i === 0 ? "M" : "L") + xAt(i) + "," + yAt(v); }).join(" ");
+      var areaD = pathD + " L" + xAt(n - 1) + "," + (MT + plotH) + " L" + xAt(0) + "," + (MT + plotH) + " Z";
+      var areaId = "area-" + s.cur;
+      var grad = svgEl("linearGradient", { id: areaId, x1: "0", y1: "0", x2: "0", y2: "1" });
+      var stop1 = svgEl("stop", { offset: "0%", "stop-color": s.color, "stop-opacity": "0.22" });
+      var stop2 = svgEl("stop", { offset: "100%", "stop-color": s.color, "stop-opacity": "0" });
+      grad.appendChild(stop1); grad.appendChild(stop2);
+      var defs = svgEl("defs", {}); defs.appendChild(grad);
+      svg.appendChild(defs);
+
+      svg.appendChild(svgEl("path", { d: areaD, fill: "url(#" + areaId + ")", stroke: "none" }));
+      svg.appendChild(svgEl("path", { d: pathD, fill: "none", stroke: s.color, "stroke-width": "2", "stroke-linejoin": "round", "stroke-linecap": "round" }));
+
+      vals.forEach(function (v, i) {
+        var r = (i === n - 1) ? 3.5 : 2;
+        svg.appendChild(svgEl("circle", { cx: xAt(i), cy: yAt(v), r: r, fill: s.color, stroke: "var(--surface)", "stroke-width": "1.5" }));
+      });
+      var endLbl = svgEl("text", { x: xAt(n - 1), y: yAt(vals[n - 1]) - 9, "text-anchor": "end", class: "bar-value" });
+      endLbl.textContent = s.fmtV(vals[n - 1]);
+      svg.appendChild(endLbl);
+
+      DATA.months.forEach(function (m, i) {
+        if (i === 0 || i === n - 1 || i === Math.floor(n / 2)) {
+          var lbl = svgEl("text", { class: "axis-label", x: xAt(i), y: H - 6, "text-anchor": i === 0 ? "start" : (i === n - 1 ? "end" : "middle") });
+          lbl.textContent = MONTH_LABEL[m.month] || m.month;
+          svg.appendChild(lbl);
+        }
+      });
+
+      var guide = svgEl("line", { class: "hover-guide", x1: 0, x2: 0, y1: MT, y2: MT + plotH });
+      var hoverDot = svgEl("circle", { class: "hover-dot", r: 4, fill: s.color, stroke: "var(--surface)", "stroke-width": "2" });
+      svg.appendChild(guide); svg.appendChild(hoverDot);
+
+      var hit = svgEl("rect", { x: 0, y: 0, width: W, height: H, fill: "transparent" });
+      hit.addEventListener("mousemove", function (ev) {
+        var box = svg.getBoundingClientRect();
+        var relX = (ev.clientX - box.left) * (W / box.width);
+        var i = Math.round(((relX - ML) / plotW) * (n - 1));
+        i = Math.max(0, Math.min(n - 1, i));
+        guide.setAttribute("x1", xAt(i)); guide.setAttribute("x2", xAt(i)); guide.style.opacity = "1";
+        hoverDot.setAttribute("cx", xAt(i)); hoverDot.setAttribute("cy", yAt(vals[i])); hoverDot.style.opacity = "1";
+        showTooltip(ev.clientX, box.top + window.scrollY, "" +
+          "<div class='tt-title'>" + DATA.months[i].month.replace("JUl", "Jul") + "</div>" +
+          "<div class='tt-row'><span class='k'>ຍອດຄົງເຫຼືອ</span><span>" + s.fmtV(vals[i]) + "</span></div>");
+      });
+      hit.addEventListener("mouseleave", function () {
+        guide.style.opacity = "0"; hoverDot.style.opacity = "0"; hideTooltip();
+      });
+      svg.appendChild(hit);
+
+      chartHost.appendChild(svg);
+    });
+  }
+
+  // ------------------------------------------------------------- hbars
+  function renderHBars(hostId, items, opts) {
+    var host = document.getElementById(hostId);
+    var maxV = Math.max.apply(null, items.map(function (it) { return opts.value(it); }));
+    items.forEach(function (it) {
+      var v = opts.value(it);
+      var pct = maxV ? (v / maxV) * 100 : 0;
+      var row = el("div", "hbar-row");
+      row.appendChild(el("div", "hbar-label", opts.label(it)));
+      var track = el("div", "hbar-track");
+      var fill = el("div", "hbar-fill");
+      fill.style.width = pct + "%";
+      fill.style.background = opts.color(it);
+      track.appendChild(fill);
+      row.appendChild(track);
+      var valWrap = el("div");
+      valWrap.appendChild(el("div", "hbar-value", opts.valueLabel(it)));
+      if (opts.sub) valWrap.appendChild(el("div", "hbar-count", opts.sub(it)));
+      row.appendChild(valWrap);
+      host.appendChild(row);
+    });
+  }
+
+  function renderCategoryChart() {
+    renderHBars("categoryChart", DATA.categories, {
+      value: function (c) { return c.total; },
+      label: function (c) { return c.category; },
+      color: function (c) { return CAT_COLOR[c.category] || "var(--ink-muted)"; },
+      valueLabel: function (c) { return "₭" + fmtCompact(c.total); }
+    });
+  }
+  function renderSupplierChart() {
+    renderHBars("supplierChart", DATA.top_suppliers.slice(0, 10), {
+      value: function (s) { return s.total_paid; },
+      label: function (s) { return s.supplier; },
+      color: function () { return "var(--gold)"; },
+      valueLabel: function (s) { return "₭" + fmtCompact(s.total_paid); },
+      sub: function (s) { return s.tx_count + " ລາຍການ"; }
+    });
+  }
+
+  // --------------------------------------------------------- accounts table
+  function renderAccountsTable() {
+    var t = document.getElementById("accountsTable");
+    var thead = el("thead");
+    var htr = el("tr");
+    ["ທະນາຄານ", "ເລກບັນຊີ", "ສະກຸນ", "ຍອດຄົງເຫຼືອ", "ສຳຮອງ", "ໃຊ້ໄດ້ຈິງ", "ອັດຕາແລກປ່ຽນ", "ທຽບເທົ່າກີບ"]
+      .forEach(function (h, i) { var th = el("th", i >= 3 ? "num" : "", h); htr.appendChild(th); });
+    thead.appendChild(htr);
+    t.appendChild(thead);
+    var tbody = el("tbody");
+    DATA.summary_accounts.forEach(function (a) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "", a.bank_code + " · " + a.company));
+      tr.appendChild(el("td", "", String(a.bank_account_number)));
+      tr.appendChild(el("td", "", "<span class='cur-badge " + a.currency + "'>" + a.currency + "</span>"));
+      tr.appendChild(el("td", "num", fmtCur(a.transaction_currency_balance, a.currency)));
+      tr.appendChild(el("td", "num", fmtCur(a.reserve_amount, a.currency)));
+      tr.appendChild(el("td", "num", fmtCur(a.available_balance, a.currency)));
+      tr.appendChild(el("td", "num", fmt(a.rate, a.currency === "LAK" ? 0 : 2)));
+      tr.appendChild(el("td", "num", "₭" + fmt(a.total_lak_equivalent, 0)));
+      tbody.appendChild(tr);
+    });
+    var totalRow = el("tr");
+    totalRow.appendChild(el("td", "", "<b>ລວມທັງໝົດ</b>"));
+    totalRow.appendChild(el("td", "")); totalRow.appendChild(el("td", ""));
+    totalRow.appendChild(el("td", "")); totalRow.appendChild(el("td", "")); totalRow.appendChild(el("td", ""));
+    totalRow.appendChild(el("td", ""));
+    var total = DATA.summary_accounts.reduce(function (s, a) { return s + a.total_lak_equivalent; }, 0);
+    totalRow.appendChild(el("td", "num", "<b>₭" + fmt(total, 0) + "</b>"));
+    tbody.appendChild(totalRow);
+    t.appendChild(tbody);
+  }
+
+  // -------------------------------------------------------------- transactions
+  var txState = { search: "", month: "", category: "", currency: "", page: 0, pageSize: 50 };
+
+  function txFiltered() {
+    var q = txState.search.trim().toLowerCase();
+    return DATA.transactions.filter(function (t) {
+      if (txState.month && t.month !== txState.month) return false;
+      if (txState.category && t.category !== txState.category) return false;
+      if (txState.currency && t.currency !== txState.currency) return false;
+      if (q) {
+        var hay = ((t.supplier || "") + " " + (t.desc || "") + " " + (t.pv || "")).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderTxControls() {
+    var monthSel = document.getElementById("txMonth");
+    DATA.months.forEach(function (m) {
+      var o = el("option", "", (MONTH_LABEL[m.month] || m.month) + " (" + m.month.replace("JUl", "Jul") + ")");
+      o.value = m.month;
+      monthSel.appendChild(o);
+    });
+    var catSel = document.getElementById("txCategory");
+    DATA.categories.forEach(function (c) {
+      var o = el("option", "", c.category);
+      o.value = c.category;
+      catSel.appendChild(o);
+    });
+    monthSel.addEventListener("change", function () { txState.month = monthSel.value; txState.page = 0; renderTxTable(); });
+    catSel.addEventListener("change", function () { txState.category = catSel.value; txState.page = 0; renderTxTable(); });
+    document.getElementById("txSearch").addEventListener("input", function (ev) {
+      txState.search = ev.target.value; txState.page = 0; renderTxTable();
+    });
+    var pills = document.querySelectorAll("#txCurrencyPills .pill");
+    pills.forEach(function (p) {
+      p.addEventListener("click", function () {
+        pills.forEach(function (pp) { pp.setAttribute("aria-pressed", "false"); });
+        p.setAttribute("aria-pressed", "true");
+        txState.currency = p.getAttribute("data-cur");
+        txState.page = 0;
+        renderTxTable();
+      });
+    });
+    document.getElementById("txPrev").addEventListener("click", function () {
+      if (txState.page > 0) { txState.page--; renderTxTable(); }
+    });
+    document.getElementById("txNext").addEventListener("click", function () {
+      var total = txFiltered().length;
+      var maxPage = Math.max(0, Math.ceil(total / txState.pageSize) - 1);
+      if (txState.page < maxPage) { txState.page++; renderTxTable(); }
+    });
+  }
+
+  function renderTxTable() {
+    var rows = txFiltered();
+    var total = rows.length;
+    var maxPage = Math.max(0, Math.ceil(total / txState.pageSize) - 1);
+    if (txState.page > maxPage) txState.page = maxPage;
+    var start = txState.page * txState.pageSize;
+    var pageRows = rows.slice(start, start + txState.pageSize);
+
+    var tbody = document.getElementById("txBody");
+    tbody.innerHTML = "";
+    var empty = document.getElementById("txEmpty");
+    empty.style.display = pageRows.length ? "none" : "block";
+
+    pageRows.forEach(function (t) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "", t.date ? t.date.slice(5).split("-").reverse().join("/") : "-"));
+      tr.appendChild(el("td", "", t.supplier || "<span style='color:var(--ink-muted)'>—</span>"));
+      var descCell = el("td", "desc-cell");
+      descCell.appendChild(el("div", "desc-main", t.desc || "-"));
+      if (t.category) descCell.appendChild(el("span", "cat-tag", t.category));
+      tr.appendChild(descCell);
+      tr.appendChild(el("td", "", t.pv || "<span style='color:var(--ink-muted)'>—</span>"));
+      tr.appendChild(el("td", "num", t.in ? fmtCur(t.in, t.currency) : ""));
+      tr.appendChild(el("td", "num", t.out ? fmtCur(t.out, t.currency) : ""));
+      tr.appendChild(el("td", "", "<span class='cur-badge " + t.currency + "'>" + t.currency + "</span>"));
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("txResultCount").textContent = fmt(total, 0) + " ລາຍການ";
+    document.getElementById("txPageStatus").textContent =
+      total === 0 ? "" : ("ໜ້າ " + (txState.page + 1) + " / " + (maxPage + 1));
+    document.getElementById("txPrev").disabled = txState.page <= 0;
+    document.getElementById("txNext").disabled = txState.page >= maxPage;
+    document.getElementById("txSectionNote").textContent =
+      DATA.overall.total_tx + " ລາຍການ ຕະຫຼອດ " + DATA.months.length + " ເດືອນ · ຄົ້ນຫາ ຫຼື ກັ່ນຕອງໄດ້ຂ້າງລຸ່ມ";
+  }
+
+  // ------------------------------------------------------------------ boot
+  function clearAll() {
+    document.getElementById("kpiGrid").innerHTML = "";
+    document.getElementById("flowChart").innerHTML = "";
+    document.getElementById("balanceCharts").innerHTML = "";
+    document.getElementById("categoryChart").innerHTML = "";
+    document.getElementById("supplierChart").innerHTML = "";
+    document.getElementById("accountsTable").innerHTML = "";
+    var filters = document.querySelector(".filters");
+    if (filters) filters.parentNode.replaceChild(filters.cloneNode(true), filters);
+    var pager = document.querySelector(".pager");
+    if (pager) pager.parentNode.replaceChild(pager.cloneNode(true), pager);
+    txState = { search: "", month: "", category: "", currency: "", page: 0, pageSize: 50 };
+  }
+
+  function renderAll(data) {
+    DATA = data;
+    clearAll();
+    renderKPIs();
+    renderFlowChart();
+    renderBalanceCharts();
+    renderCategoryChart();
+    renderSupplierChart();
+    renderAccountsTable();
+    renderTxControls();
+    renderTxTable();
+  }
+
+  window.renderGomartDashboard = renderAll;
+  renderAll(DATA);
+})();
+
+</script>
+<script>
+(function () {
+  var statusText = document.getElementById("liveStatusText");
+  var sourceLine = document.getElementById("liveSourceLine");
+  var refreshBtn = document.getElementById("refreshBtn");
+  if (typeof fetchGodeliveryLive !== "function") return;
+  function attempt(timeoutMs) { return fetchGodeliveryLive(timeoutMs); }
+
+  function doRefresh(isManual) {
+    if (refreshBtn) refreshBtn.disabled = true;
+    if (isManual && statusText) statusText.textContent = "ກຳລັງອັບເດດ...";
+    attempt(15000).catch(function () {
+      return new Promise(function (resolve) { setTimeout(resolve, 1000); }).then(function () { return attempt(20000); });
+    }).then(function (liveData) {
+      window.renderGomartDashboard(liveData);
+      if (statusText) statusText.textContent = "ອັບເດດສົດ " + new Date().toLocaleString("lo-LA", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit", year: "numeric" });
+      if (sourceLine) sourceLine.textContent = "ອີງຕາມ Google Sheet: Cash Balance Godelivery (live)";
+      if (refreshBtn) refreshBtn.disabled = false;
+    }).catch(function () {
+      if (statusText) statusText.textContent = "ຂໍ້ມູນຊຸດຫຼ້າສຸດ (offline)";
+      if (sourceLine) sourceLine.textContent = "ບໍ່ສາມາດເຊື່ອມຕໍ່ Google Sheet ໄດ້ — ສະແດງຂໍ້ມູນທີ່ບັນທຶກໄວ້ໃນໄຟລ໌";
+      if (refreshBtn) refreshBtn.disabled = false;
+    });
+  }
+
+  if (refreshBtn) refreshBtn.addEventListener("click", function () { doRefresh(true); });
+  doRefresh(false);
+  setInterval(function () { doRefresh(false); }, 3 * 60 * 1000);
+})();
+</script>
