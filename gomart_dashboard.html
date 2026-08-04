@@ -11362,7 +11362,7 @@
   var DATA = JSON.parse(document.getElementById("dashboard-data").textContent);
   var MONTH_LABEL = {
     "Jan 2026": "ມ.ກ", "Feb 2026": "ກ.ພ", "Mar 2026": "ມີ.ນ", "Apr 2026": "ເມ.ສ",
-    "May 2026": "ພ.ພ", "Jun 2026": "ມິ.ຖ", "JUl 2026": "ກ.ລ", "Aug 2026": "ສ.ຫ"
+    "May 2026": "ພ.ພ", "Jun 2026": "ມິ.ຖ", "Jul 2026": "ກ.ລ", "JUl 2026": "ກ.ລ", "Aug 2026": "ສ.ຫ"
   };
   var CAT_COLOR = {
     "ຊື້ສິນຄ້າ/ເບີກສິນຄ້າ": "var(--s1)",
@@ -11418,42 +11418,51 @@
     var firstOpen = DATA.months[0].opening.LAK;
     var lastClose = DATA.months[DATA.months.length - 1].closing.LAK;
     var delta = lastClose - firstOpen;
-    var deltaPct = (delta / firstOpen) * 100;
+    var deltaPct = firstOpen ? (delta / firstOpen) * 100 : 0;
+    var curList = DATA.summary_accounts.map(function (a) { return a.currency; });
+    var firstMonthLbl = MONTH_LABEL[DATA.months[0].month] || DATA.months[0].month;
+    var lastMonthLbl = MONTH_LABEL[DATA.months[DATA.months.length - 1].month] || DATA.months[DATA.months.length - 1].month;
 
     var cards = [
       {
         lead: true,
         label: "ຍອດເງິນທີ່ໃຊ້ໄດ້ລວມ (ທຽບເທົ່າກີບ)",
         value: "₭" + fmt(totalLak, 0),
-        sub: "ຈາກ 3 ບັນຊີທະນາຄານ BCEL (LAK · USD · THB)"
-      },
-      {
+        sub: "ຈາກ " + DATA.summary_accounts.length + " ບັນຊີທະນາຄານ (" + curList.join(" · ") + ")"
+      }
+    ];
+    if (acc.LAK) {
+      cards.push({
         label: "ບັນຊີ LAK",
         value: "₭" + fmt(acc.LAK.transaction_currency_balance, 0),
         sub: "ສຳຮອງ ₭" + fmt(acc.LAK.reserve_amount, 0) + " · ໃຊ້ໄດ້ ₭" + fmt(acc.LAK.available_balance, 0)
-      },
-      {
+      });
+    }
+    if (acc.USD) {
+      cards.push({
         label: "ບັນຊີ USD",
         value: "$" + fmt(acc.USD.transaction_currency_balance, 2),
         sub: "≈ ₭" + fmt(acc.USD.total_lak_equivalent, 0) + " · ອັດຕາ " + fmt(acc.USD.rate, 0)
-      },
-      {
+      });
+    }
+    if (acc.THB) {
+      cards.push({
         label: "ບັນຊີ THB",
         value: "฿" + fmt(acc.THB.transaction_currency_balance, 2),
         sub: "≈ ₭" + fmt(acc.THB.total_lak_equivalent, 0) + " · ອັດຕາ " + fmt(acc.THB.rate, 2)
-      },
-      {
-        label: "ຈຳນວນທຸລະກຳ (8 ເດືອນ)",
-        value: fmt(DATA.overall.total_tx, 0),
-        sub: fmt(Math.round(DATA.overall.total_tx / DATA.months.length), 0) + " ລາຍການ/ເດືອນ ໂດຍສະເລ່ຍ"
-      },
-      {
-        label: "ການປ່ຽນແປງ LAK (ມ.ກ → ສ.ຫ)",
-        value: (delta >= 0 ? "+" : "") + "₭" + fmt(delta, 0),
-        sub: "",
-        delta: deltaPct
-      }
-    ];
+      });
+    }
+    cards.push({
+      label: "ຈຳນວນທຸລະກຳ (" + DATA.months.length + " ເດືອນ)",
+      value: fmt(DATA.overall.total_tx, 0),
+      sub: fmt(Math.round(DATA.overall.total_tx / DATA.months.length), 0) + " ລາຍການ/ເດືອນ ໂດຍສະເລ່ຍ"
+    });
+    cards.push({
+      label: "ການປ່ຽນແປງ LAK (" + firstMonthLbl + " → " + lastMonthLbl + ")",
+      value: (delta >= 0 ? "+" : "") + "₭" + fmt(delta, 0),
+      sub: "",
+      delta: deltaPct
+    });
 
     cards.forEach(function (c) {
       var card = el("div", "kpi" + (c.lead ? " lead" : ""));
@@ -11796,7 +11805,7 @@
     document.getElementById("txPrev").disabled = txState.page <= 0;
     document.getElementById("txNext").disabled = txState.page >= maxPage;
     document.getElementById("txSectionNote").textContent =
-      DATA.overall.total_tx + " ລາຍການ ຕະຫຼອດ 8 ເດືອນ · ຄົ້ນຫາ ຫຼື ກັ່ນຕອງໄດ້ຂ້າງລຸ່ມ";
+      DATA.overall.total_tx + " ລາຍການ ຕະຫຼອດ " + DATA.months.length + " ເດືອນ · ຄົ້ນຫາ ຫຼື ກັ່ນຕອງໄດ້ຂ້າງລຸ່ມ";
   }
 
   // ------------------------------------------------------------------ boot
