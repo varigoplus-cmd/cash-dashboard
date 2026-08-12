@@ -547,15 +547,19 @@
 
   function buildSummary(rows) {
     var out = [];
+    var group = 1;
     for (var r = 1; r < rows.length; r++) {
       var row = rows[r];
-      if (!row || !row[1] || row[1] === "Bank code" || !row[4] || ["LAK", "USD", "THB"].indexOf(row[5]) === -1) continue;
+      if (!row || !row[1]) continue;
+      if (row[1] === "Bank code") { group++; continue; }
+      if (!row[4] || ["LAK", "USD", "THB"].indexOf(row[5]) === -1) continue;
       out.push({
         bank_code: row[1], company: row[2], account_type: row[3],
         bank_account_number: row[4], currency: row[5],
         transaction_currency_balance: U.parseNum(row[6]), reserve_amount: U.parseNum(row[7]),
         available_balance: U.parseNum(row[8]), rate: U.parseNum(row[9]),
-        total_lak_equivalent: U.parseNum(row[10])
+        total_lak_equivalent: U.parseNum(row[10]),
+        group: group
       });
     }
     return out;
@@ -709,6 +713,22 @@
         sub: "ຈາກ " + DATA.summary_accounts.length + " ບັນຊີທະນາຄານ (" + curList.join(" · ") + ")"
       }
     ];
+    var groupIds = DATA.summary_accounts.map(function (a) { return a.group || 1; })
+      .filter(function (g, i, arr) { return arr.indexOf(g) === i; }).sort(function (a, b) { return a - b; });
+    if (groupIds.length > 1) {
+      var groupTotals = {};
+      DATA.summary_accounts.forEach(function (a) {
+        var g = a.group || 1;
+        groupTotals[g] = (groupTotals[g] || 0) + (a.total_lak_equivalent || 0);
+      });
+      groupIds.forEach(function (g) {
+        cards.push({
+          label: "ສາຂາ " + g,
+          value: "₭" + fmt(groupTotals[g], 0),
+          sub: "ທຽບເທົ່າກີບ"
+        });
+      });
+    }
     if (acc.LAK) {
       cards.push({
         label: "ບັນຊີ LAK",
@@ -971,7 +991,17 @@
     thead.appendChild(htr);
     t.appendChild(thead);
     var tbody = el("tbody");
+
+    var groups = {};
     DATA.summary_accounts.forEach(function (a) {
+      var g = a.group || 1;
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(a);
+    });
+    var groupIds = Object.keys(groups).sort(function (a, b) { return a - b; });
+    var multiGroup = groupIds.length > 1;
+
+    function accountRow(a) {
       var tr = el("tr");
       tr.appendChild(el("td", "", a.bank_code + " · " + a.company));
       tr.appendChild(el("td", "", String(a.bank_account_number)));
@@ -981,8 +1011,34 @@
       tr.appendChild(el("td", "num", fmtCur(a.available_balance, a.currency)));
       tr.appendChild(el("td", "num", fmt(a.rate, a.currency === "LAK" ? 0 : 2)));
       tr.appendChild(el("td", "num", "₭" + fmt(a.total_lak_equivalent, 0)));
-      tbody.appendChild(tr);
+      return tr;
+    }
+
+    groupIds.forEach(function (gid) {
+      if (multiGroup) {
+        var gHeadRow = el("tr");
+        var gHeadCell = el("td", "", "<b>ສາຂາ " + gid + "</b>");
+        gHeadCell.setAttribute("colspan", "8");
+        gHeadCell.style.background = "var(--surface-2)";
+        gHeadRow.appendChild(gHeadCell);
+        tbody.appendChild(gHeadRow);
+      }
+      var gTotal = 0;
+      groups[gid].forEach(function (a) {
+        gTotal += a.total_lak_equivalent || 0;
+        tbody.appendChild(accountRow(a));
+      });
+      if (multiGroup) {
+        var gSubRow = el("tr");
+        gSubRow.appendChild(el("td", "", "<i>ລວມສາຂາ " + gid + "</i>"));
+        gSubRow.appendChild(el("td", "")); gSubRow.appendChild(el("td", ""));
+        gSubRow.appendChild(el("td", "")); gSubRow.appendChild(el("td", "")); gSubRow.appendChild(el("td", ""));
+        gSubRow.appendChild(el("td", ""));
+        gSubRow.appendChild(el("td", "num", "<i>₭" + fmt(gTotal, 0) + "</i>"));
+        tbody.appendChild(gSubRow);
+      }
     });
+
     var totalRow = el("tr");
     totalRow.appendChild(el("td", "", "<b>ລວມທັງໝົດ</b>"));
     totalRow.appendChild(el("td", "")); totalRow.appendChild(el("td", ""));
