@@ -5710,15 +5710,19 @@
 
   function buildSummary(rows) {
     var out = [];
+    var group = 1;
     for (var r = 1; r < rows.length; r++) {
       var row = rows[r];
-      if (!row || !row[1] || row[1] === "Bank code" || !row[5] || ["LAK", "USD", "THB"].indexOf(row[6]) === -1) continue;
+      if (!row || !row[1]) continue;
+      if (row[1] === "Bank code") { group++; continue; }
+      if (!row[5] || ["LAK", "USD", "THB"].indexOf(row[6]) === -1) continue;
       out.push({
         bank_code: row[1], company: row[2], account_type: row[3], gl_account: row[4],
         bank_account_number: row[5], currency: row[6],
         transaction_currency_balance: U.parseNum(row[7]), reserve_amount: U.parseNum(row[8]),
         available_balance: U.parseNum(row[9]), rate: U.parseNum(row[10]),
-        total_lak_equivalent: U.parseNum(row[11])
+        total_lak_equivalent: U.parseNum(row[11]),
+        group: group
       });
     }
     return out;
