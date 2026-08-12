@@ -302,6 +302,11 @@
     </div>
   </div>
 
+  <div class="section" id="branchChartSection" style="display:none;">
+    <div class="section-head"><div class="section-title">ປຽບທຽບຍອດແຕ່ລະສາຂາ (ທຽບເທົ່າກີບ)</div></div>
+    <div class="card" id="branchChart"></div>
+  </div>
+
   <div class="section">
     <div class="section-head"><div class="section-title">ບັນຊີທະນາຄານ</div></div>
     <div class="card table-scroll">
@@ -11715,6 +11720,29 @@
     });
   }
 
+  // ---------------------------------------------------------- branch chart
+  function renderBranchChart() {
+    var section = document.getElementById("branchChartSection");
+    var host = document.getElementById("branchChart");
+    if (!section || !host) return;
+    var groupIds = DATA.summary_accounts.map(function (a) { return a.group || 1; })
+      .filter(function (g, i, arr) { return arr.indexOf(g) === i; }).sort(function (a, b) { return a - b; });
+    if (groupIds.length <= 1) { section.style.display = "none"; return; }
+    var groupTotals = {};
+    DATA.summary_accounts.forEach(function (a) {
+      var g = a.group || 1;
+      groupTotals[g] = (groupTotals[g] || 0) + (a.total_lak_equivalent || 0);
+    });
+    var items = groupIds.map(function (g) { return { label: "ສາຂາ " + g, value: groupTotals[g] }; });
+    section.style.display = "";
+    renderHBars("branchChart", items, {
+      value: function (it) { return it.value; },
+      label: function (it) { return it.label; },
+      color: function () { return "var(--accent)"; },
+      valueLabel: function (it) { return "₭" + fmtCompact(it.value); }
+    });
+  }
+
   // --------------------------------------------------------- accounts table
   function renderAccountsTable() {
     var t = document.getElementById("accountsTable");
@@ -11909,6 +11937,8 @@
     document.getElementById("categoryChart").innerHTML = "";
     document.getElementById("supplierChart").innerHTML = "";
     document.getElementById("accountsTable").innerHTML = "";
+    var branchChart = document.getElementById("branchChart");
+    if (branchChart) branchChart.innerHTML = "";
     var filters = document.querySelector(".filters");
     if (filters) filters.parentNode.replaceChild(filters.cloneNode(true), filters);
     var pager = document.querySelector(".pager");
@@ -11924,6 +11954,7 @@
     renderBalanceCharts();
     renderCategoryChart();
     renderSupplierChart();
+    renderBranchChart();
     renderAccountsTable();
     renderTxControls();
     renderTxTable();
