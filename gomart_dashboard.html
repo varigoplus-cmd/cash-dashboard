@@ -11404,6 +11404,19 @@
     return e;
   }
 
+  function aggregateByCurrency(accounts) {
+    var acc = {};
+    accounts.forEach(function (a) {
+      if (!acc[a.currency]) acc[a.currency] = { currency: a.currency, transaction_currency_balance: 0, reserve_amount: 0, available_balance: 0, total_lak_equivalent: 0, rate: a.rate };
+      acc[a.currency].transaction_currency_balance += a.transaction_currency_balance || 0;
+      acc[a.currency].reserve_amount += a.reserve_amount || 0;
+      acc[a.currency].available_balance += a.available_balance || 0;
+      acc[a.currency].total_lak_equivalent += a.total_lak_equivalent || 0;
+      acc[a.currency].rate = a.rate;
+    });
+    return acc;
+  }
+
   var tooltip = document.getElementById("tooltip");
   function showTooltip(x, y, html) {
     tooltip.innerHTML = html;
@@ -11416,15 +11429,7 @@
   // ---------------------------------------------------------------- KPIs
   function renderKPIs() {
     var grid = document.getElementById("kpiGrid");
-    var acc = {};
-    DATA.summary_accounts.forEach(function (a) {
-      if (!acc[a.currency]) acc[a.currency] = { transaction_currency_balance: 0, reserve_amount: 0, available_balance: 0, total_lak_equivalent: 0, rate: a.rate };
-      acc[a.currency].transaction_currency_balance += a.transaction_currency_balance || 0;
-      acc[a.currency].reserve_amount += a.reserve_amount || 0;
-      acc[a.currency].available_balance += a.available_balance || 0;
-      acc[a.currency].total_lak_equivalent += a.total_lak_equivalent || 0;
-      acc[a.currency].rate = a.rate;
-    });
+    var acc = aggregateByCurrency(DATA.summary_accounts);
     var totalLak = DATA.summary_accounts.reduce(function (s, a) { return s + a.total_lak_equivalent; }, 0);
     var firstOpen = DATA.months[0].opening.LAK;
     var lastClose = DATA.months[DATA.months.length - 1].closing.LAK;
@@ -11767,6 +11772,31 @@
         tbody.appendChild(gSubRow);
       }
     });
+
+    if (multiGroup) {
+      var combHeadRow = el("tr");
+      var combHeadCell = el("td", "", "<b>ລວມແຕ່ລະສະກຸນເງິນ (ທຸກສາຂາ)</b>");
+      combHeadCell.setAttribute("colspan", "8");
+      combHeadCell.style.background = "var(--surface-2)";
+      combHeadRow.appendChild(combHeadCell);
+      tbody.appendChild(combHeadRow);
+
+      var combAcc = aggregateByCurrency(DATA.summary_accounts);
+      ["LAK", "USD", "THB"].forEach(function (cur) {
+        if (!combAcc[cur]) return;
+        var a = combAcc[cur];
+        var tr = el("tr");
+        tr.appendChild(el("td", "", "<b>ລວມທຸກສາຂາ</b>"));
+        tr.appendChild(el("td", ""));
+        tr.appendChild(el("td", "", "<span class='cur-badge " + cur + "'>" + cur + "</span>"));
+        tr.appendChild(el("td", "num", fmtCur(a.transaction_currency_balance, cur)));
+        tr.appendChild(el("td", "num", fmtCur(a.reserve_amount, cur)));
+        tr.appendChild(el("td", "num", fmtCur(a.available_balance, cur)));
+        tr.appendChild(el("td", "num", fmt(a.rate, cur === "LAK" ? 0 : 2)));
+        tr.appendChild(el("td", "num", "₭" + fmt(a.total_lak_equivalent, 0)));
+        tbody.appendChild(tr);
+      });
+    }
 
     var totalRow = el("tr");
     totalRow.appendChild(el("td", "", "<b>ລວມທັງໝົດ</b>"));
