@@ -11278,7 +11278,7 @@
     var out = [];
     for (var r = 1; r < rows.length; r++) {
       var row = rows[r];
-      if (!row || !row[1]) continue;
+      if (!row || !row[1] || row[1] === "Bank code" || !row[5] || ["LAK", "USD", "THB"].indexOf(row[6]) === -1) continue;
       out.push({
         bank_code: row[1], company: row[2], account_type: row[3], gl_account: row[4],
         bank_account_number: row[5], currency: row[6],
@@ -11413,13 +11413,20 @@
   function renderKPIs() {
     var grid = document.getElementById("kpiGrid");
     var acc = {};
-    DATA.summary_accounts.forEach(function (a) { acc[a.currency] = a; });
+    DATA.summary_accounts.forEach(function (a) {
+      if (!acc[a.currency]) acc[a.currency] = { transaction_currency_balance: 0, reserve_amount: 0, available_balance: 0, total_lak_equivalent: 0, rate: a.rate };
+      acc[a.currency].transaction_currency_balance += a.transaction_currency_balance || 0;
+      acc[a.currency].reserve_amount += a.reserve_amount || 0;
+      acc[a.currency].available_balance += a.available_balance || 0;
+      acc[a.currency].total_lak_equivalent += a.total_lak_equivalent || 0;
+      acc[a.currency].rate = a.rate;
+    });
     var totalLak = DATA.summary_accounts.reduce(function (s, a) { return s + a.total_lak_equivalent; }, 0);
     var firstOpen = DATA.months[0].opening.LAK;
     var lastClose = DATA.months[DATA.months.length - 1].closing.LAK;
     var delta = lastClose - firstOpen;
     var deltaPct = firstOpen ? (delta / firstOpen) * 100 : 0;
-    var curList = DATA.summary_accounts.map(function (a) { return a.currency; });
+    var curList = DATA.summary_accounts.map(function (a) { return a.currency; }).filter(function (c, i, arr) { return arr.indexOf(c) === i; });
     var firstMonthLbl = MONTH_LABEL[DATA.months[0].month] || DATA.months[0].month;
     var lastMonthLbl = MONTH_LABEL[DATA.months[DATA.months.length - 1].month] || DATA.months[DATA.months.length - 1].month;
 
