@@ -11452,22 +11452,6 @@
         sub: "ຈາກ " + DATA.summary_accounts.length + " ບັນຊີທະນາຄານ (" + curList.join(" · ") + ")"
       }
     ];
-    var groupIds = DATA.summary_accounts.map(function (a) { return a.group || 1; })
-      .filter(function (g, i, arr) { return arr.indexOf(g) === i; }).sort(function (a, b) { return a - b; });
-    if (groupIds.length > 1) {
-      var groupTotals = {};
-      DATA.summary_accounts.forEach(function (a) {
-        var g = a.group || 1;
-        groupTotals[g] = (groupTotals[g] || 0) + (a.total_lak_equivalent || 0);
-      });
-      groupIds.forEach(function (g) {
-        cards.push({
-          label: "ສາຂາ " + g,
-          value: "₭" + fmt(groupTotals[g], 0),
-          sub: "ທຽບເທົ່າກີບ"
-        });
-      });
-    }
     if (acc.LAK) {
       cards.push({
         label: "ບັນຊີ LAK",
