@@ -5712,7 +5712,7 @@
     var out = [];
     for (var r = 1; r < rows.length; r++) {
       var row = rows[r];
-      if (!row || !row[1]) continue;
+      if (!row || !row[1] || row[1] === "Bank code" || !row[5] || ["LAK", "USD", "THB"].indexOf(row[6]) === -1) continue;
       out.push({
         bank_code: row[1], company: row[2], account_type: row[3], gl_account: row[4],
         bank_account_number: row[5], currency: row[6],
