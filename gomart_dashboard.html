@@ -11172,7 +11172,12 @@
       "/gviz/tq?tqx=out:csv&sheet=" + encodeURIComponent(tabName) + "&_=" + Date.now();
   }
 
-  function fetchTabCSV(sheetId, tabName, timeoutMs) {
+  function gvizCsvUrlByGid(sheetId, gid) {
+    return "https://docs.google.com/spreadsheets/d/" + sheetId +
+      "/gviz/tq?tqx=out:csv&gid=" + encodeURIComponent(gid) + "&_=" + Date.now();
+  }
+
+  function fetchCSVFromUrl(url, timeoutMs) {
     var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
     var timer = null;
     if (ctrl && timeoutMs) {
@@ -11180,10 +11185,10 @@
     }
     var opts = { cache: "no-store" };
     if (ctrl) opts.signal = ctrl.signal;
-    return fetch(gvizCsvUrl(sheetId, tabName), opts)
+    return fetch(url, opts)
       .then(function (r) {
         if (timer) clearTimeout(timer);
-        if (!r.ok) throw new Error("HTTP " + r.status + " for tab " + tabName);
+        if (!r.ok) throw new Error("HTTP " + r.status + " for " + url);
         return r.text();
       })
       .then(function (text) { return parseCSV(text); })
@@ -11191,6 +11196,14 @@
         if (timer) clearTimeout(timer);
         throw e;
       });
+  }
+
+  function fetchTabCSV(sheetId, tabName, timeoutMs) {
+    return fetchCSVFromUrl(gvizCsvUrl(sheetId, tabName), timeoutMs);
+  }
+
+  function fetchTabCSVByGid(sheetId, gid, timeoutMs) {
+    return fetchCSVFromUrl(gvizCsvUrlByGid(sheetId, gid), timeoutMs);
   }
 
   global.CsvUtil = {
@@ -11201,7 +11214,8 @@
     parseDateDMonY: parseDateDMonY,
     parseDateDMY: parseDateDMY,
     gvizCsvUrl: gvizCsvUrl,
-    fetchTabCSV: fetchTabCSV
+    fetchTabCSV: fetchTabCSV,
+    fetchTabCSVByGid: fetchTabCSVByGid
   };
 })(window);
 
@@ -11214,6 +11228,8 @@
   var SHEET_ID = "1aTjnRy8O0aJSZQBaxr_FiZvrSf98AP8b";
   var MONTHS = ["Jan 2026", "Feb 2026", "Mar 2026", "Apr 2026", "May 2026", "Jun 2026", "JUl 2026", "Aug 2026"];
   var CUR_MAP = { LAK: [5, 6, 7], THB: [8, 9, 10], USD: [11, 12, 13] };
+  var BRANCH_002_GID = "1716337891";
+  var BRANCH_002_LABEL = "ສາຂາ 002 ບຶງທາດຫລວງ";
   // columns (0-indexed): 1=supplier, 2=pv, 3=date, 4=desc
 
   function categorize(desc) {
@@ -11279,6 +11295,51 @@
     return { month: mname, opening: opening, closing: closing, totals: totals, tx_count: txCount, tx: tx };
   }
 
+  // Branch ledger tabs (e.g. new branches opened mid-year) have no separate
+  // opening-balance row — the first row is already a real transaction, so
+  // opening starts at zero and parsing begins at row 1 instead of row 2.
+  function buildBranchLedger(label, rows) {
+    var closing = { LAK: 0, THB: 0, USD: 0 };
+    var totals = { LAK: { in: 0, out: 0 }, THB: { in: 0, out: 0 }, USD: { in: 0, out: 0 } };
+    var txCount = 0;
+    var lastDateStr = null;
+    var tx = [];
+
+    for (var r = 1; r < rows.length; r++) {
+      var row = rows[r];
+      var dateRaw = (row[3] || "").trim();
+      var desc = (row[4] || "").trim();
+      var dateParsed = dateRaw ? U.parseDateDMonY(dateRaw) : null;
+      if (!dateParsed && !desc) break;
+      var dateStr;
+      if (dateParsed) { dateStr = dateParsed; lastDateStr = dateParsed; }
+      else dateStr = lastDateStr;
+
+      var supplier = (row[1] || "").trim() || null;
+      var pv = (row[2] || "").trim() || null;
+      var rowHasTx = false;
+
+      ["LAK", "THB", "USD"].forEach(function (cur) {
+        var cm = CUR_MAP[cur];
+        var vin = U.parseNum(row[cm[0]]), vout = U.parseNum(row[cm[1]]), vbal = U.parseNum(row[cm[2]]);
+        if (vbal !== null) closing[cur] = vbal;
+        if ((vin !== null && vin !== 0) || (vout !== null && vout !== 0)) {
+          rowHasTx = true;
+          totals[cur].in += vin || 0;
+          totals[cur].out += vout || 0;
+          tx.push({
+            month: label, date: dateStr, supplier: supplier, pv: pv, desc: desc || null,
+            currency: cur, in: U.round2(vin || 0), out: U.round2(vout || 0),
+            category: (vout && vout !== 0) ? categorize(desc) : null
+          });
+        }
+      });
+      if (rowHasTx) txCount++;
+    }
+
+    return { closing: closing, totals: totals, tx_count: txCount, tx: tx };
+  }
+
   function buildSummary(rows) {
     var out = [];
     var group = 1;
@@ -11302,10 +11363,12 @@
   function fetchGomartLive(timeoutMs) {
     var tabPromises = MONTHS.map(function (m) { return U.fetchTabCSV(SHEET_ID, m, timeoutMs); });
     tabPromises.push(U.fetchTabCSV(SHEET_ID, "Summary", timeoutMs));
+    tabPromises.push(U.fetchTabCSVByGid(SHEET_ID, BRANCH_002_GID, timeoutMs));
 
     return Promise.all(tabPromises).then(function (results) {
       var monthResults = results.slice(0, MONTHS.length);
-      var summaryRows = results[results.length - 1];
+      var summaryRows = results[MONTHS.length];
+      var branch002Rows = results[MONTHS.length + 1];
 
       var months = [];
       var allTx = [];
@@ -11317,6 +11380,26 @@
         months.push({ month: built.month, opening: built.opening, closing: built.closing, totals: built.totals, tx_count: built.tx_count });
         allTx = allTx.concat(built.tx);
       });
+
+      var summaryAccounts = buildSummary(summaryRows);
+      var maxGroup = summaryAccounts.reduce(function (m, a) { return Math.max(m, a.group || 1); }, 1);
+      var branchGroup = maxGroup + 1;
+      var branch002 = buildBranchLedger(BRANCH_002_LABEL, branch002Rows);
+      ["LAK", "THB", "USD"].forEach(function (cur) {
+        var hasActivity = (branch002.totals[cur].in || 0) !== 0 || (branch002.totals[cur].out || 0) !== 0 || (branch002.closing[cur] || 0) !== 0;
+        if (!hasActivity) return;
+        var rateSource = summaryAccounts.filter(function (a) { return a.currency === cur; })[0];
+        var rate = cur === "LAK" ? 1 : (rateSource ? rateSource.rate : 1);
+        summaryAccounts.push({
+          bank_code: "Go+mart", company: BRANCH_002_LABEL, account_type: "Cash", gl_account: null,
+          bank_account_number: "-", currency: cur,
+          transaction_currency_balance: branch002.closing[cur], reserve_amount: 0,
+          available_balance: branch002.closing[cur], rate: rate,
+          total_lak_equivalent: cur === "LAK" ? branch002.closing[cur] : branch002.closing[cur] * rate,
+          group: branchGroup
+        });
+      });
+      allTx = allTx.concat(branch002.tx);
 
       var supplierPaid = {}, supplierTxCount = {};
       allTx.forEach(function (t) {
@@ -11348,7 +11431,7 @@
 
       return {
         months: months,
-        summary_accounts: buildSummary(summaryRows),
+        summary_accounts: summaryAccounts,
         top_suppliers: topSuppliers,
         categories: categories,
         overall: {
