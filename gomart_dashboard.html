@@ -11382,23 +11382,11 @@
       });
 
       var summaryAccounts = buildSummary(summaryRows);
-      var maxGroup = summaryAccounts.reduce(function (m, a) { return Math.max(m, a.group || 1); }, 1);
-      var branchGroup = maxGroup + 1;
+      // Branch 002's own transactions are folded into the transaction list
+      // below, but it does NOT get its own "ສາຂາ" group in the accounts
+      // table / branch chart / KPI totals — only branches 1 & 2 (from the
+      // Summary sheet) show there.
       var branch002 = buildBranchLedger(BRANCH_002_LABEL, branch002Rows);
-      ["LAK", "THB", "USD"].forEach(function (cur) {
-        var hasActivity = (branch002.totals[cur].in || 0) !== 0 || (branch002.totals[cur].out || 0) !== 0 || (branch002.closing[cur] || 0) !== 0;
-        if (!hasActivity) return;
-        var rateSource = summaryAccounts.filter(function (a) { return a.currency === cur; })[0];
-        var rate = cur === "LAK" ? 1 : (rateSource ? rateSource.rate : 1);
-        summaryAccounts.push({
-          bank_code: "Go+mart", company: BRANCH_002_LABEL, account_type: "Cash", gl_account: null,
-          bank_account_number: "-", currency: cur,
-          transaction_currency_balance: branch002.closing[cur], reserve_amount: 0,
-          available_balance: branch002.closing[cur], rate: rate,
-          total_lak_equivalent: cur === "LAK" ? branch002.closing[cur] : branch002.closing[cur] * rate,
-          group: branchGroup
-        });
-      });
       allTx = allTx.concat(branch002.tx);
 
       var supplierPaid = {}, supplierTxCount = {};
